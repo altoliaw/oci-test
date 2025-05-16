@@ -1,0 +1,73 @@
+{
+	"dependencies": [
+		{
+			"name": "cJson",
+			"download": "git clone https://github.com/DaveGamble/cJSON.git {{name}}",
+			"command": "make",
+			"includes": [
+				"cJSON.h"
+			],
+			"libs": [
+				"libcjson.a"
+			],
+			"others": [
+
+			],
+			"reference": "https://github.com/DaveGamble/cJSON",
+			"remove": "rm -rf {{name}}",
+			"windows": true,
+			"linux": true
+		},
+		{
+			"name": "nPcap",
+			"download": "wget -O {{name}}/tmp.zip https://npcap.com/dist/npcap-sdk-1.13.zip",
+			"command": "unzip tmp.zip",
+			"includes": [
+				"Include/*"
+			],
+			"libs": [
+				"Lib/*"
+			],
+			"others": [
+
+			],
+			"reference": "https://npcap.com/#download",
+			"remove": "rm -rf {{name}}",
+			"windows": true,
+			"linux": false
+		},
+		{
+			"name": "libGpG-Error",
+			"download": "wget -O {{name}}/tmp.tar.bz2 https://gnupg.org/ftp/gcrypt/libgpg-error/libgpg-error-1.50.tar.bz2",
+			"command": "tar jxvf tmp.tar.bz2 && cd libgpg-error-1.50 && ./configure --prefix={{projectVendors}}/{{name}} && make && make install && cd ../",
+			"includes": [
+				"include/*"
+			],
+			"libs": [
+				"lib/*"
+			],
+			"reference": "https://gnupg.org/download/index.html",
+			"remove": "rm -rf {{name}}",
+			"windows": false,
+			"linux": true
+		},
+    	{
+			"name": "libGcrypt",
+			"download": "wget -O {{name}}/tmp.tar.bz2 https://gnupg.org/ftp/gcrypt/libgcrypt/libgcrypt-1.11.0.tar.bz2",
+			"command": "tar jxvf tmp.tar.bz2 && cd libgcrypt-1.11.0 && CPPFLAGS='-I{{projectVendors}}/libGpG-Error/Includes' LDFLAGS='-L{{projectVendors}}/libGpG-Error/Libs' ./configure --prefix={{projectVendors}}/{{name}} --with-gpg-error-prefix={{projectVendors}}/libGpG-Error && make install && cd ../",
+			"includes": [
+				"include/*"
+			],
+			"libs": [
+				"lib/*"
+			],
+			"others": [
+				"bin"
+			],
+			"reference": "https://gnupg.org/download/index.html",
+			"remove": "",
+			"windows": false,
+			"linux": true
+		}
+	]
+}

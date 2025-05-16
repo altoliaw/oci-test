@@ -1,0 +1,12 @@
+# Directories
+Bin
+Outputs
+Vendors
+build
+
+# Files
+*.o
+*.gz
+
+# Specified files
+commonTmp.mk
