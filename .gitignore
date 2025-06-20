@@ -10,3 +10,4 @@ build
 
 # Specified files
 commonTmp.mk
+tmp.mk
