@@ -49,7 +49,7 @@ function searchElement() {
 #  * @param $0 The function called by users
 #  * @param $1 The dependent file name of the .json file (defined in the "Vendors" folder)
 #  */
-function vendorDependenciesInitailization() {
+function vendorDependenciesInitialization() {
     local vendorFilePath=$1
     local vendorFolder=$(echo "$vendorFilePath" | sed 's|/[^/]*$||')
 
@@ -103,7 +103,7 @@ function dependenciesTraversal() {
     # To ensure that the folder and the files by using the command in the "Makefile" in the root of the project
     if [ ! -f $vendorJsonFile ]; then
         # make createVendor
-        vendorDependenciesInitailization "$vendorJsonFile"
+        vendorDependenciesInitialization "$vendorJsonFile"
     fi
 
     #Reading the content from the .json file
