@@ -110,7 +110,7 @@ function dependenciesTraversal() {
     local jsonContent="$(<$jsonFile)"
     local dependencies=$(echo $jsonContent | jq '.dependencies') # Obtaining the array from the attribute, "dependencies"
 
-    # Obtaining the length of the arrary
+    # Obtaining the length of the array
     local dependenciesLength=$(obtainArrayLength "$dependencies")
     local vendorContent=$(echo "$(<$vendorJsonFile)" | jq '.dependencies')
 
@@ -164,11 +164,10 @@ function dependenciesTraversal() {
 
             # Verifying if commanded string contains {{projectVendor}}, the {{projectVendor}} shall be replaced
             # to the path of the project's Vendors folder
-            command=$(echo "$command" | sed "s|{{projectVendors}}|$(pwd)/Vendors|g")
-
-
-            # Executing the download, command, installation and removing the download at last
             local vendorDir=$(dirname "$vendorJsonFile") # Displaying the path of the the folder, "Vendors"
+            command=$(echo "$command" | sed "s|{{projectVendors}}|$vendorDir|g")
+
+            # Executing the download, command, installation and removing the download at last            
             cd "$vendorDir" # Changing to the folder, "Vendors"
             mkdir -p "$folderName" # Creating the formal folder
             mkdir -p "$folderName/Includes"
@@ -179,6 +178,7 @@ function dependenciesTraversal() {
             eval "$download" # Implementing the download, tar and so on
             cd "$folderName.tmp" # Changing to the .tmp folder automatically
             eval "$command"
+            cd "$vendorDir/$folderName.tmp" # Changing to the folder, {{name}}.tmp, the temporary folder root
 
             # Executing the copied files or folders to the folder, "Includes"
             local includesLength=$(obtainArrayLength "$includes")
