@@ -17,7 +17,7 @@ searchElement "$dependencies" '.[] | select(.name == "cJson3")' '-r'
 echo "==========================="
 # Intiailzation the file, .Vendors.json, in the folder, Vendors
 Vendors=Vendors
-vendorDependenciesInitailization "$Vendors/.$Vendors.json"
+vendorDependenciesInitialization "$Vendors/.$Vendors.json"
 
 echo "==========================="
 # Traversal of globalDependencies.json
