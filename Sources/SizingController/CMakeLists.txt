@@ -7,11 +7,9 @@ if(OPERATING_SYSTEM STREQUAL "0")
 		LinuxSizingMainCaller.cpp
 	)
 
-	set(STATIC_LIB_PATH ${CMAKE_BINARY_DIR}/Vendors)
-
 	target_include_directories(Main.Sources PUBLIC 
 		../../Headers/SizingController
-		${STATIC_LIB_PATH}/libpcap/Includes)
+		${STATIC_VENDOR_BINARY_DIR_PATH}/libpcap/Includes)
 
 else()
 	add_library(Main.Sources
@@ -20,9 +18,7 @@ else()
 		WindowsSizingMainCaller.cpp
 	)
 
-	set(STATIC_LIB_PATH ${CMAKE_BINARY_DIR}/Vendors)
-
 	target_include_directories(Main.Sources PUBLIC 
 		../../Headers/SizingController
-		${STATIC_LIB_PATH}/nPcap/Includes)
+		${STATIC_VENDOR_BINARY_DIR_PATH}/nPcap/Includes)
 endif()
