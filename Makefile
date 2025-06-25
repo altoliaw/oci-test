@@ -51,9 +51,9 @@ endif
 Bin:= Bin
 # The folder for the third party software
 Vendors:= Vendors
-# The file for recording the variables and values
+# This file is for restoring the Makefiles' variables in the compiled process
 TempMakefile:= ${projectDir}/tmp.mk
-# The file for recording the variables and values
+# This file is for restoring the common variables for the compiler
 CommonTempMakefile:= ${projectDir}/commonTmp.mk
 
 # Generating all common variables for compilers into the Makefile
@@ -129,7 +129,7 @@ ifeq ($(OS), Linux)
 	@make -C Models/FileParsers all projectDir='${projectDir}' ARGUMENTS='${ARGUMENTS}' TempMakefile='${TempMakefile}' CommonTempMakefile='${CommonTempMakefile}'
 	@make -C Models/PCAP all projectDir='${projectDir}' ARGUMENTS='${ARGUMENTS}' TempMakefile='${TempMakefile}' CommonTempMakefile='${CommonTempMakefile}'
 	@make -C Sources/SizingController all projectDir='${projectDir}' ARGUMENTS='${ARGUMENTS}' TempMakefile='${TempMakefile}' CommonTempMakefile='${CommonTempMakefile}'
-	@make -C Apps all projectDir='${projectDir}' ARGUMENTS='${ARGUMENTS}' TempMakefile='${TempMakefile}' CommonTempMakefile='${CommonTempMakefile}'
+	@make -C Apps/Sizing all projectDir='${projectDir}' ARGUMENTS='${ARGUMENTS}' TempMakefile='${TempMakefile}' CommonTempMakefile='${CommonTempMakefile}'
 	@make -C Apps/Executions all projectDir='${projectDir}' ARGUMENTS='${ARGUMENTS}' TempMakefile='${TempMakefile}' CommonTempMakefile='${CommonTempMakefile}'
 
 else

@@ -1,6 +1,23 @@
 {
 	"dependencies": [
 		{
+			"name": "libpcap",
+			"download": "wget -O {{name}}/libpcap-1.9.1.tar.gz https://www.tcpdump.org/release/libpcap-1.9.1.tar.gz",
+			"command": "tar zxvf libpcap-1.9.1.tar.gz && cd libpcap-1.9.1 && ./configure --prefix={{projectVendors}}/{{name}} && make && make install && cd ..",
+			"includes": [
+				"include/*"
+			],
+			"libs": [
+				"lib/*"
+			],
+			"others": [
+			],
+			"reference": "https://www.tcpdump.org/release/",
+			"remove": "rm -rf {{name}}",
+			"windows": false,
+			"linux": true
+		},
+		{
 			"name": "cJson",
 			"download": "git clone https://github.com/DaveGamble/cJSON.git {{name}}",
 			"command": "make",

@@ -56,7 +56,7 @@ endTime:
 
 # SizingMain.exe
 ${Apps}/SizingMain.exe: 
-	${CC} ${STD} ${CMPOPT} ${DETAILINFO} ${WALL} ${CFLAGS} ${FMSG} -o ${projectDir}/${Bin}/SizingMain.exe ${Apps}/SizingMain.o \
+	${CC} ${STD} ${CMPOPT} ${DETAILINFO} ${WALL} ${CFLAGS} ${FMSG} -o ${projectDir}/${Bin}/SizingMain.exe ${Apps}/Sizing/SizingMain.o \
 	${Sources.SizingController}/SizingMainCallerPrototype.o \
 	${Sources.SizingController}/LinuxSizingMainCaller.o \
 	${Sources.SizingController}/WindowsSizingMainCaller.o \
