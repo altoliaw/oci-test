@@ -24,7 +24,7 @@ include ${TempMakefile}
 
 
 # ######## [Variable Definition]
-Models			:=	Apps
+Models			:=	Apps.Sizing
 Duration		:=
 Apps			:=${projectDir}/Apps
 
@@ -47,7 +47,7 @@ IsExisted	:=
 .Phony: all
 all: \
 	startTime \
-	${Apps}/SizingMain.o \
+	${Apps}/Sizing/SizingMain.o \
 	endTime
 
 # Adding the Makefile's variables shall be added into the ${TempMakefile} file
@@ -77,5 +77,5 @@ endTime:
 	@echo $(shell source ${projectDir}/Shells/compiledStringMessage.sh && echo $$(endingString "${Models}" "${Duration}"))
 
 # SizingMain
-${Apps}/SizingMain.o:	${Apps}/SizingMain.cpp
-	${CC} ${STD} ${CMPOPT} ${DETAILINFO} ${WALL} ${CFLAGS} ${Apps}/SizingMain.cpp -c ${FMSG} -o ${Apps}/SizingMain.o
+${Apps}/Sizing/SizingMain.o:	${Apps}/Sizing/SizingMain.cpp
+	${CC} ${STD} ${CMPOPT} ${DETAILINFO} ${WALL} ${CFLAGS} ${Apps}/Sizing/SizingMain.cpp -c ${FMSG} -o ${Apps}/Sizing/SizingMain.o
