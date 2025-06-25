@@ -1,57 +1,34 @@
 cmake_minimum_required(VERSION 3.14)
-project(trafficMonitor)
+project(native-sizing)
 
 # [C++ Settings]
 ## GoogleTest requires at least C++14
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# [Testing Flag]
-## Setting the option to determine whether the test is enabled or the compile (for windows) shall be executed
-## When users feel like use cmake instructions for executing non-test code, the instructions are shown as below,
-## "cmake -S . -B build -DBUILD_TESTS=OFF && cmake --build build".
-option(BUILD_TEST "The default testing variable is on" ON)
+# [Global CMake Variable Information]
+## This file contains global CMake variables used across the project.
+## The file is a manual reference for developers to for the definition of the global variables.
+## Please refer to the file in the following:
+include(Settings/.Cmake/.globalCmakeVariable.cmake)
 
-## Enableing test
-if (BUILD_TEST)
-  enable_testing()
-endif()
+# [System Support]
+# This file sets the OPERATING_SYSTEM variable based on the platform. 
+# If the platform does not match Linux or Windows, it will raise an error (exiting the process).
+include(Settings/.Cmake/.systemSupport.cmake)
 
-# [Goolge Test Settings]
-## Goolge test requires
-if (BUILD_TEST)
-  include(FetchContent)
-  FetchContent_Declare(
-    googletest
-    URL https://github.com/google/googletest/archive/305e5a238b3c8d11266fbafd85520fb6b3184851.zip
-  )
-  # For Windows: Prevent overriding the parent project's compiler/linker settings
-  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-  FetchContent_MakeAvailable(googletest)
-endif()
+# [Testing Settings]
+## Please refer to the file in the following:
+## BUILD_TEST is used to determine whether the unit test is enabled (ON) or not (OFF)
+include(Settings/.Cmake/.testingInstruction.cmake)
 
 # [Involved Files When Compiling]
-## Copying the dependent files of the project (cfg, ini files or files users feel like opening)
-if (BUILD_TEST)
-configure_file(${CMAKE_SOURCE_DIR}/Settings/.Ini/globalCompiling.ini ${CMAKE_BINARY_DIR}/Settings/.Ini/globalCompiling.ini COPYONLY)
-endif()
+## The custom files which shall be copied to the binary directory
+include(Settings/.Cmake/.customFileReference.cmake)
 
-# Others involved in the testing process and compiling process
-configure_file(${CMAKE_SOURCE_DIR}/Settings/.Json/SizingMain.json ${CMAKE_BINARY_DIR}/Settings/.Json/SizingMain.json COPYONLY)
+# [Included Directories, for Libraries and Controllers]
+## The project's directories which shall be included in the compilation
+include(Settings/.Cmake/.projectDirectoryIncluded.cmake)
 
-## Copying the third party software into the Vendors folder and the Outputs for testing
-file(COPY ${CMAKE_SOURCE_DIR}/Vendors DESTINATION ${CMAKE_BINARY_DIR})
-file(COPY ${CMAKE_SOURCE_DIR}/Outputs DESTINATION ${CMAKE_BINARY_DIR})
-
-
-# [Included Directories]
-## Opening the subdirectory for the next works
-add_subdirectory(Models)
-add_subdirectory(Sources)
-
-## When the testing function is set as "ON"
-if (BUILD_TEST)
-  add_subdirectory(Tests)
-else() # The necessary directory when compiling on Windows
-  add_subdirectory(Apps)
-endif()
+# [Debugging & Testing/Releasing Settings]
+include(Settings/.Cmake/.compiledRouter.cmake)

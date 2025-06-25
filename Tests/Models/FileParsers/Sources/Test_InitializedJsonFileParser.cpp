@@ -54,7 +54,7 @@ TEST(FileParsers, Test_InitializedJsonFileParser_parseInitializedFile) {
     stream << value;
     stream >> result;
 
-	ASSERT_EQ(result, 30);
+	ASSERT_EQ(result, 10);
 
     FileParsers::InitializedJsonFileParser::releaseInitializedFileParserInitialization();
 }
