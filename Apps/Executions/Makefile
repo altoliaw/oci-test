@@ -8,10 +8,10 @@
 # from the Shells/installVendor.sh
 PLAIN_ARGUMENTS	:=  $(shell source ${projectDir}/Shells/codecUtilities.sh && echo $$(acsiiHexToString "${ARGUMENTS}"))
 
-# ######## [Necessary COmmon MakeFile Variables Included]
+# ######## [Necessary Common MakeFile Variables Included]
 include ${CommonTempMakefile}
 
-# If someone feel like using the definitions that users define, please remove the comment and fill in the suitable terms.
+# If someone feel like using the definitions that users define, please use target-specific for reassign variables as below:
 # CC			=
 # STD			=
 # CMPOPT		=
@@ -26,7 +26,7 @@ include ${CommonTempMakefile}
 # ######## [Variable Definition]
 Models			:=	Apps.Executions
 Duration		:=
-### The folder for the exection
+### The folder for the execution
 Bin				:=	Bin
 
 # ######## [Necessary MakeFile Variables Included]
@@ -55,6 +55,9 @@ endTime:
 	@echo $(shell source ${projectDir}/Shells/compiledStringMessage.sh && echo $$(endingString "${Models}" "${Duration}"))
 
 # SizingMain.exe
+${Apps}/SizingMain.exe: CFLAGS=$(subst -I,-I${projectDir}/, -IVendors/libpcap/Includes -IVendors/cJson/Includes)
+${Apps}/SizingMain.exe: LDFLAGS=$(subst -L,-L${projectDir}/,-LVendors/libpcap/Libs -LVendors/cJson/Libs)
+${Apps}/SizingMain.exe: LDLIBS=-lpcap -lc -lcjson
 ${Apps}/SizingMain.exe: 
 	${CC} ${STD} ${CMPOPT} ${DETAILINFO} ${WALL} ${CFLAGS} ${FMSG} -o ${projectDir}/${Bin}/SizingMain.exe ${Apps}/Sizing/SizingMain.o \
 	${Sources.SizingController}/SizingMainCallerPrototype.o \
