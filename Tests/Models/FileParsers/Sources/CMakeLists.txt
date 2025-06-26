@@ -5,15 +5,13 @@ add_executable(
 	Test_InitializedJsonFileParser.cpp
 )
 
-set(STATIC_LIB_PATH ${CMAKE_BINARY_DIR}/Vendors)
-
 # linking to the headers
 target_include_directories(
 	Tests.FileParsers PUBLIC 
 	../Headers 
 	../../../../Models/Commons/Headers 
 	../../../../Models/FileParsers/Headers
-	${STATIC_LIB_PATH}/cJson/Includes
+	${STATIC_VENDOR_BINARY_DIR_PATH}/cJson/Includes
 )
 
 # linking to the gtest library
@@ -21,7 +19,7 @@ target_link_libraries(
 	Tests.FileParsers
 	Models.FileParsers
 	Models.Commons
-	${STATIC_LIB_PATH}/cJson/Libs/libcjson.a
+	${STATIC_VENDOR_BINARY_DIR_PATH}/cJson/Libs/libcjson.a
 	GTest::gtest_main
 
 )
