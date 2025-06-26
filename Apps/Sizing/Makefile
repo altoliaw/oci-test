@@ -48,6 +48,7 @@ IsExisted	:=
 all: \
 	startTime \
 	${Apps}/Sizing/SizingMain.o \
+	${Apps}/OciMain.o \
 	endTime
 
 # Adding the Makefile's variables shall be added into the ${TempMakefile} file
@@ -79,3 +80,6 @@ endTime:
 # SizingMain
 ${Apps}/Sizing/SizingMain.o:	${Apps}/Sizing/SizingMain.cpp
 	${CC} ${STD} ${CMPOPT} ${DETAILINFO} ${WALL} ${CFLAGS} ${Apps}/Sizing/SizingMain.cpp -c ${FMSG} -o ${Apps}/Sizing/SizingMain.o
+# OciMain
+${Apps}/OciMain.o: ${Apps}/OciMain.cpp
+	${CC} ${STD} ${CMPOPT} ${DETAILINFO} ${WALL} ${CFLAGS} ${Apps}/OciMain.cpp -c ${FMSG} -o ${Apps}/OciMain.o

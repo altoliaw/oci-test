@@ -50,6 +50,46 @@
 			"remove": "rm -rf {{name}}",
 			"windows": true,
 			"linux": false
+		},
+		{
+			"name": "OracleInstantClient",
+			"download": [
+				"wget -O {{name}}/oracle-instantclient-basic.rpm https://download.oracle.com/otn_software/linux/instantclient/191000/oracle-instantclient19.10-basic-19.10.0.0.0-1.x86_64.rpm && wget -O {{name}}/oracle-instantclient-devel.rpm https://download.oracle.com/otn_software/linux/instantclient/191000/oracle-instantclient19.10-devel-19.10.0.0.0-1.x86_64.rpm"
+			],
+			"command": 
+				"rpm2cpio oracle-instantclient-basic.rpm | cpio -idmv && rpm2cpio oracle-instantclient-devel.rpm | cpio -idmv"
+			,
+			"includes": [
+				"usr/include/oracle/19.10/client64/*.h"
+			],
+			"libs": [
+				"usr/lib/oracle/19.10/client64/lib/*"
+			],
+			"others": [],
+			"reference": "https://www.oracle.com/database/technologies/instant-client.html",
+			"remove": "rm -rf {{name}}",
+			"windows": false,
+			"linux": true
+		},
+		{
+			"name": "OCILib",
+			"download": [
+				"wget -O {{name}}/ocilib.tar.gz https://github.com/vrogier/ocilib/archive/refs/tags/v4.7.6.tar.gz"
+			],
+			"command": 
+				"tar -xzf ocilib.tar.gz --strip-components=1 && ./configure --prefix=$(pwd)/ocilib --with-oracle-headers-path={{projectVendors}}/OracleInstantClient/Includes --with-oracle-lib-path={{projectVendors}}/OracleInstantClient/Libs && make && make install"
+			,
+			"includes": [
+				"ocilib/include/ocilib.h"
+			],
+			"libs": [
+				"ocilib/lib/libocilib.so"
+			],
+			"others": [],
+			"reference": "https://github.com/vrogier/ocilib",
+			"remove": "rm -rf {{name}}",
+			"windows": false,
+			"linux": true
 		}
 	]
 }

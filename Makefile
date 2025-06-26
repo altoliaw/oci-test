@@ -34,6 +34,10 @@ FMSG		:= $(shell source ${projectDir}/Shells/iniParser.sh && echo $$(getVariable
 CFLAGS		:= $(shell source ${projectDir}/Shells/iniParser.sh && echo $$(getVariableValue "${keyValuePair}" "compiler.CFLAGS"))
 LDFLAGS		:= $(shell source ${projectDir}/Shells/iniParser.sh && echo $$(getVariableValue "${keyValuePair}" "compiler.LDFLAGS"))
 LDLIBS		:= $(shell source ${projectDir}/Shells/iniParser.sh && echo $$(getVariableValue "${keyValuePair}" "compiler.LDLIBS"))
+LDLIBS_OCI  := $(shell source ${projectDir}/Shells/iniParser.sh && echo $$(getVariableValue "${keyValuePair}" "compiler.LDLIBS_OCI"))
+$(info 👉 LDLIBS_OCI = ${LDLIBS_OCI})
+
+
 # Replacing terms by using $(.) from Makefile function
 CFLAGS		:=	$(subst -I,-I${projectDir}/,${CFLAGS})
 # Replacing terms by using $(.) from Makefile function
@@ -67,6 +71,8 @@ $(shell echo "FMSG 				:= ${FMSG}" >> ${CommonTempMakefile})
 $(shell echo "CFLAGS 			:= ${CFLAGS}" >> ${CommonTempMakefile})
 $(shell echo "LDFLAGS 			:= ${LDFLAGS}" >> ${CommonTempMakefile})
 $(shell echo "LDLIBS 			:= ${LDLIBS}" >> ${CommonTempMakefile})
+$(shell echo "LDLIBS_OCI 		:= ${LDLIBS_OCI}" >> ${CommonTempMakefile})
+
 
 
 
@@ -103,7 +109,7 @@ clean:
 
 
 # ######## [Custom Defined Phonies]
-# The place for reserving the third libraries; the phony will install the libraries automatically as well
+# The place for reserving the third parties libraries; the phony will install the libraries automatically as well
 .Phony: vendor
 vendor: ${projectDir}/Folders
     # Creating the vendor and related folders by using the function, dependenciesTraversal, 
@@ -128,7 +134,9 @@ ifeq ($(OS), Linux)
 	@make -C Models/Commons all projectDir='${projectDir}' ARGUMENTS='${ARGUMENTS}' TempMakefile='${TempMakefile}' CommonTempMakefile='${CommonTempMakefile}'
 	@make -C Models/FileParsers all projectDir='${projectDir}' ARGUMENTS='${ARGUMENTS}' TempMakefile='${TempMakefile}' CommonTempMakefile='${CommonTempMakefile}'
 	@make -C Models/PCAP all projectDir='${projectDir}' ARGUMENTS='${ARGUMENTS}' TempMakefile='${TempMakefile}' CommonTempMakefile='${CommonTempMakefile}'
+	@make -C Models/OcilibModel all projectDir='${projectDir}' ARGUMENTS='${ARGUMENTS}' TempMakefile='${TempMakefile}' CommonTempMakefile='${CommonTempMakefile}'
 	@make -C Sources/SizingController all projectDir='${projectDir}' ARGUMENTS='${ARGUMENTS}' TempMakefile='${TempMakefile}' CommonTempMakefile='${CommonTempMakefile}'
+	@make -C Sources/OciController all projectDir='${projectDir}' ARGUMENTS='${ARGUMENTS}' TempMakefile='${TempMakefile}' CommonTempMakefile='${CommonTempMakefile}'
 	@make -C Apps/Sizing all projectDir='${projectDir}' ARGUMENTS='${ARGUMENTS}' TempMakefile='${TempMakefile}' CommonTempMakefile='${CommonTempMakefile}'
 	@make -C Apps/Executions all projectDir='${projectDir}' ARGUMENTS='${ARGUMENTS}' TempMakefile='${TempMakefile}' CommonTempMakefile='${CommonTempMakefile}'
 

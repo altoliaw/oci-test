@@ -2,9 +2,10 @@
 	"base": {
 		"service":[
 			{
-				"interface": "\\Device\\NPF_{0C751C98-BF2E-4263-9726-65AE842B0AD2}",
+				"interface": "ens192",
+				
 				"port": [
-					"1521", "1522"
+					1521, 1522
 				]
 			}
 		],

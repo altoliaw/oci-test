@@ -31,6 +31,7 @@ Bin				:=	Bin
 
 # ######## [Necessary MakeFile Variables Included]
 include ${TempMakefile}
+LDFLAGS += -Wl,-rpath,Vendors/OCILib/Libs
 
 # ######## [Implicit Rules]
 # The definition for the basic element in the Makefile
@@ -43,6 +44,7 @@ include ${TempMakefile}
 all: \
 	startTime \
 	${Apps}/SizingMain.exe \
+	${Apps}/OciMain.exe \
 	endTime
 
 
@@ -73,3 +75,13 @@ ${Apps}/SizingMain.exe:
 	${PCAP.Sources}/LinuxPCAP.o \
 	${LDFLAGS} \
 	${LDLIBS}
+
+
+${Apps}/OciMain.exe:
+	${CC} ${STD} ${CMPOPT} ${DETAILINFO} ${WALL} ${CFLAGS} ${FMSG} -o ${projectDir}/${Bin}/OciMain.exe ${Apps}/OciMain.o \
+	${projectDir}/Sources/OciController/OcilibController.o \
+	${projectDir}/Models/OcilibModel/Source/OcilibModel.o \
+	${LDFLAGS} \
+	${LDLIBS} \
+	${LDLIBS_OCI}
+
