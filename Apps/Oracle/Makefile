@@ -6,14 +6,14 @@
 # ######## [Necessary Common MakeFile Variables Included]
 include ${CommonTempMakefile}
 
-# If someone feel like using the definitions that users define, please use target-specific for reassign variables as below:
+# If someone feel like using the definitions that users define, please remove the comment and fill in the suitable terms.
 # CC			=
 # STD			=
 # CMPOPT		=
 # DETAILINFO	=
 # WALL		=
 # FMSG		=
-# CFLAGS		= 
+# CFLAGS		=
 # LDFLAGS		=
 # LDLIBS		=
 
@@ -24,7 +24,7 @@ include ${TempMakefile}
 
 
 # ######## [Variable Definition]
-Models			:=	Apps.Sizing
+Models			:=	Apps.Oracle
 Duration		:=
 Apps			:=${projectDir}/Apps
 
@@ -47,7 +47,7 @@ IsExisted	:=
 .Phony: all
 all: \
 	startTime \
-	${Apps}/Sizing/SizingMain.o \
+	${Apps}/Oracle/OracleMain.o \
 	endTime
 
 # Adding the Makefile's variables shall be added into the ${TempMakefile} file
@@ -76,6 +76,6 @@ startTime:
 endTime:
 	@echo $(shell source ${projectDir}/Shells/compiledStringMessage.sh && echo $$(endingString "${Models}" "${Duration}"))
 
-# SizingMain
-${Apps}/Sizing/SizingMain.o:	${Apps}/Sizing/SizingMain.cpp
-	${CC} ${STD} ${CMPOPT} ${DETAILINFO} ${WALL} ${CFLAGS} ${Apps}/Sizing/SizingMain.cpp -c ${FMSG} -o ${Apps}/Sizing/SizingMain.o
+# OracleMain
+${Apps}/Oracle/OracleMain.o: ${Apps}/Oracle/OracleMain.cpp
+	${CC} ${STD} ${CMPOPT} ${DETAILINFO} ${WALL} ${CFLAGS} ${Apps}/Oracle/OracleMain.cpp -c ${FMSG} -o ${Apps}//Oracle/OracleMain.o

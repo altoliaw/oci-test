@@ -142,5 +142,5 @@ void LinuxPCAP::show() {
     std::cout << "Please refer to the command, \"ifconfig\", manually.\n";
 }
 
-}  // namespace PCAP
+}  // namespace PCAPa
 #endif

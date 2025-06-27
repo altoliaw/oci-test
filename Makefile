@@ -128,8 +128,11 @@ ifeq ($(OS), Linux)
 	@make -C Models/Commons all projectDir='${projectDir}' ARGUMENTS='${ARGUMENTS}' TempMakefile='${TempMakefile}' CommonTempMakefile='${CommonTempMakefile}'
 	@make -C Models/FileParsers all projectDir='${projectDir}' ARGUMENTS='${ARGUMENTS}' TempMakefile='${TempMakefile}' CommonTempMakefile='${CommonTempMakefile}'
 	@make -C Models/PCAP all projectDir='${projectDir}' ARGUMENTS='${ARGUMENTS}' TempMakefile='${TempMakefile}' CommonTempMakefile='${CommonTempMakefile}'
+	@make -C Models/OracleModel all projectDir='${projectDir}' ARGUMENTS='${ARGUMENTS}' TempMakefile='${TempMakefile}' CommonTempMakefile='${CommonTempMakefile}'
 	@make -C Sources/SizingController all projectDir='${projectDir}' ARGUMENTS='${ARGUMENTS}' TempMakefile='${TempMakefile}' CommonTempMakefile='${CommonTempMakefile}'
+	@make -C Sources/OracleController all projectDir='${projectDir}' ARGUMENTS='${ARGUMENTS}' TempMakefile='${TempMakefile}' CommonTempMakefile='${CommonTempMakefile}'
 	@make -C Apps/Sizing all projectDir='${projectDir}' ARGUMENTS='${ARGUMENTS}' TempMakefile='${TempMakefile}' CommonTempMakefile='${CommonTempMakefile}'
+	@make -C Apps/Oracle all projectDir='${projectDir}' ARGUMENTS='${ARGUMENTS}' TempMakefile='${TempMakefile}' CommonTempMakefile='${CommonTempMakefile}'
 	@make -C Apps/Executions all projectDir='${projectDir}' ARGUMENTS='${ARGUMENTS}' TempMakefile='${TempMakefile}' CommonTempMakefile='${CommonTempMakefile}'
 
 else

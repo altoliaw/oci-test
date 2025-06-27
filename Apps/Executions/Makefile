@@ -43,6 +43,7 @@ include ${TempMakefile}
 all: \
 	startTime \
 	${Apps}/SizingMain.exe \
+	${Apps}/OracleMain.exe \
 	endTime
 
 
@@ -71,5 +72,16 @@ ${Apps}/SizingMain.exe:
 	${FileParsers.Sources}/InitializedJsonFileParser.o \
 	${PCAP.Sources}/PCAPPrototype.o \
 	${PCAP.Sources}/LinuxPCAP.o \
+	${LDFLAGS} \
+	${LDLIBS}
+
+# OracleMain.exe
+${Apps}/OracleMain.exe: CFLAGS=$(subst -I,-I${projectDir}/, -IVendors/Oracle/Includes -IVendors/Ocilib/Includes)
+${Apps}/OracleMain.exe: LDFLAGS=$(subst -L,-L${projectDir}/,-LVendors/Oracle/Libs -LVendors/Ocilib/Libs)
+${Apps}/OracleMain.exe: LDLIBS=-locilib -lclntsh -ldl -lpthread
+${Apps}/OracleMain.exe:
+	${CC} ${STD} ${CMPOPT} ${DETAILINFO} ${WALL} ${CFLAGS} ${FMSG} -o ${projectDir}/${Bin}/OracleMain.exe ${Apps}/Oracle/OracleMain.o \
+	${Sources.OracleController}/OracleController.o \
+	${OracleModel.Sources}/OracleModel.o \
 	${LDFLAGS} \
 	${LDLIBS}

@@ -50,6 +50,39 @@
 			"remove": "rm -rf {{name}}",
 			"windows": true,
 			"linux": false
+		},
+		{
+			"name": "Oracle",
+			"download": "wget -O {{name}}/basic.rpm https://yum.oracle.com/repo/OracleLinux/OL8/oracle/instantclient/x86_64/getPackage/oracle-instantclient19.10-basic-19.10.0.0.0-1.x86_64.rpm && wget -O {{name}}/devel.rpm https://yum.oracle.com/repo/OracleLinux/OL8/oracle/instantclient/x86_64/getPackage/oracle-instantclient19.10-devel-19.10.0.0.0-1.x86_64.rpm",
+			"command": "rpm2cpio basic.rpm | cpio -idmv && rpm2cpio devel.rpm | cpio -idmv",
+			"includes": [
+				"usr/include/oracle/19.10/client64/*"
+			],
+			"libs": [
+				"usr/lib/oracle/19.10/client64/lib/*"
+			],
+			"others": [],
+			"reference": "https://yum.oracle.com/repo/OracleLinux/OL8/oracle/instantclient/x86_64/index.html",
+			"remove": "",
+			"windows": false,
+			"linux": true
+		},
+		{
+			"name": "Ocilib",
+			"download": "git clone https://github.com/vrogier/ocilib.git {{name}}",
+			"command": " ./configure --with-oracle-headers-path={{projectVendors}}/Oracle/Includes --with-oracle-lib-path={{projectVendors}}/Oracle/Libs --prefix={{projectVendors}}/{{name}}/install && make && make install",
+			"includes": [
+				"install/include/*"
+			],
+			"libs": [
+				"install/lib/*"
+			],
+			"others": [],
+			"reference": "https://github.com/vrogier/ocilib ;refer to oracle thrid party libraries",
+			"remove": "rm -rf {{name}}",
+			"windows": false,
+			"linux": true
 		}
+
 	]
 }

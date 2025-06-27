@@ -1,19 +1,16 @@
-# The Makefile for the execution from SizingMain.cpp
-#
-# @author Nick
-# @date 2024/09/24
+# The Makefile for OracleController
 
 # ######## [Necessary Common MakeFile Variables Included]
 include ${CommonTempMakefile}
 
-# If someone feel like using the definitions that users define, please use target-specific for reassign variables as below:
+# If someone feel like using the definitions that users define, please remove the comment and fill in the suitable terms.
 # CC			=
 # STD			=
 # CMPOPT		=
 # DETAILINFO	=
 # WALL		=
 # FMSG		=
-# CFLAGS		= 
+# CFLAGS		=
 # LDFLAGS		=
 # LDLIBS		=
 
@@ -22,11 +19,11 @@ include ${CommonTempMakefile}
 # Necessary MakeFile Variables Included
 include ${TempMakefile}
 
-
 # ######## [Variable Definition]
-Models			:=	Apps.Sizing
+Models			:=	Sources.OracleController
 Duration		:=
-Apps			:=${projectDir}/Apps
+Sources			:=	${projectDir}/Sources
+Sources.OracleController	:=	${Sources}/OracleController
 
 
 # ######## [Passing the Variable Definition into the File]
@@ -47,9 +44,8 @@ IsExisted	:=
 .Phony: all
 all: \
 	startTime \
-	${Apps}/Sizing/SizingMain.o \
+	${Sources.OracleController}/OracleController.o \
 	endTime
-
 # Adding the Makefile's variables shall be added into the ${TempMakefile} file
 	@make information
 
@@ -61,12 +57,11 @@ information:
 # Verifying the content the file, ${TempMakefile} (tmp.mk from the project) to
 # determine if the variable in the Makefile shall be added into the ${TempMakefile}
 # Using the "eval" to assign the Makefile's variable in the recipe
-	@$(eval IsExisted	:=	$(shell grep -q "^Apps\s*\(:\)\?=" "${TempMakefile}"  && echo "$$?"))
+	@$(eval IsExisted	:=	$(shell grep -q "^Sources\.OracleController\s*\(:\)\?=" "${TempMakefile}"  && echo "$$?"))
 # Adding the variable into the file when the variables do not in the file, the information shall put into the file
 	@if [ "${IsExisted}" != "0" ]; then \
-		echo "Apps			:=${projectDir}/Apps" >> "${TempMakefile}"; \
+		echo "Sources.OracleController	:=	${Sources}/OracleController" >> "${TempMakefile}"; \
 	fi
-
 
 # ######## [Compiling Items]
 # Start time
@@ -76,6 +71,6 @@ startTime:
 endTime:
 	@echo $(shell source ${projectDir}/Shells/compiledStringMessage.sh && echo $$(endingString "${Models}" "${Duration}"))
 
-# SizingMain
-${Apps}/Sizing/SizingMain.o:	${Apps}/Sizing/SizingMain.cpp
-	${CC} ${STD} ${CMPOPT} ${DETAILINFO} ${WALL} ${CFLAGS} ${Apps}/Sizing/SizingMain.cpp -c ${FMSG} -o ${Apps}/Sizing/SizingMain.o
+# OracleController
+${Sources.OracleController}/OracleController.o:	${Sources.OracleController}/OracleController.cpp
+	${CC} ${STD} ${CMPOPT} ${DETAILINFO} ${WALL} ${CFLAGS} ${Sources.OracleController}/OracleController.cpp -c ${FMSG} -o ${Sources.OracleController}/OracleController.o
