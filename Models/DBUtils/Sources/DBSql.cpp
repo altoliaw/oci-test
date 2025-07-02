@@ -22,6 +22,7 @@ void DBSql::BatchInsert(char* sql, std::vector<TestDataModel> models, int n_feat
                 maxLen = (sizeof(models.at(j).GetFeatures().at(i - 1)) / sizeof(char*));
             }
         }
+        free(features);
         conn->BindArrayOfStrings(fmtstr, (char*)features, sizeof(maxLen), models.size());
     }
     conn->BindArraySetSize(models.size());
