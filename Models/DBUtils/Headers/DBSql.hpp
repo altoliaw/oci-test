@@ -1,10 +1,11 @@
 #pragma once
 #include <vector>
 #include <cstdio>
+#include <cstring>
 #include "../../DataModels/Headers/TestDataModel.hpp"
 #include "DBConnector.hpp"
 namespace DBSql {
 
-void BatchInsert(char* sql, std::vector<TestDataModel> models, int n_feature);
+void BatchInsertFromString(char* sql, char** featrues[], int count, int n_feature);
 
 }

@@ -1,30 +1,29 @@
-#include <cstdlib>
 #include "../Headers/DBSql.hpp"
 /**
  * @brief Execute batch of insertion.
  * 
  * @param sql [char*] Insert sql statement
- * @param n_feature [int] The number of features data model have.
+ * @param features
+ * @param count
+ * @param n_feature [int] The number of column are inserted.
  */
-void DBSql::BatchInsert(char* sql, std::vector<TestDataModel> models, int n_feature) {
+void DBSql::BatchInsertFromString(char* sql, char** features[], int count, int n_feature) {
     DBConnector* conn = &DBConnector::GetInstance();
     conn->Initialize();
     conn->SetSQLStatement(sql);
     for ( int i = 1; i <= n_feature; ++i ) {
+        char** feature;
         char fmtstr[100];
         snprintf(fmtstr, sizeof(fmtstr), ":%d", i);
-        char** features = (char**)malloc(models.size() * sizeof(char*));
-        int maxLen = 0;
-        for ( int j = 0; j < models.size(); j++ ) {
-            // jth model's ith feature
-            features[j] = models.at(j).GetFeatures().at(i - 1);
-            if ( maxLen < (sizeof(models.at(j).GetFeatures().at(i - 1)) / sizeof(char*)) ) {
-                maxLen = (sizeof(models.at(j).GetFeatures().at(i - 1)) / sizeof(char*));
-            }
+        feature = features[i - 1];
+        int max_len = 0;
+        for ( int j = 0; j < count; j++ ) {
+            int len = strlen(feature[j]);
+            if ( max_len < len ) max_len = len;
         }
-        conn->BindArrayOfStrings(fmtstr, (char*)features, sizeof(maxLen), models.size());
+        conn->BindArrayOfStrings(fmtstr, (char*)feature, max_len + 1, count);
     }
-    conn->BindArraySetSize(models.size());
+    conn->BindArraySetSize(count);
     conn->Execute();
     conn->Disconnect();
 }
