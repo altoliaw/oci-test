@@ -1,4 +1,5 @@
 #include "../../Headers/OciController/OciController.hpp"
+#include <iostream>
 void OciController::start() {
     char* sql = 
         "INSERT INTO wubai_table_actually_wushi ("
@@ -22,10 +23,20 @@ void OciController::start() {
         "VALUES (:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12,:13,:14,:15,:16,:17,:18,:19,:20,"
         ":21,:22,:23,:24,:25,:26,:27,:28,:29,:30,:31,:32,:33,:34,:35,:36,:37,:38,:39,:40,"
         ":41,:42,:43,:44,:45,:46,:47,:48,:49,:50)";
+    char features[50][30][100];
+    for ( int i = 0; i < 50; i++ ) {
+        for ( int j = 0; j < 30; j++ ) {
+            sprintf(features[i][j], "extremely_long_value_of_column_with_extremely_long_name_number", 0);
+        }
+    }
+    DBSql::BatchInsertFromString(sql, (char***)features, 30, 50, 99);
+}
+
+void OciController::Insert2Columns() {
+    char* sql = 
+        "INSERT INTO TEST(COLUMN1, COLUMN2) "
+        "VALUES(:1, :2)";
     char* value = "extremely_long_value_of_column_with_extremely_long_name_number";
-    char* feature[30]; // count = 30
-    char** features[50];
-    for ( int i = 0; i < 30; i++ ) feature[i] = value;
-    for ( int i = 0; i < 50; i++ ) features[i] = feature;
-    DBSql::BatchInsertFromString(sql, features, 30, 50);
+    char*** features;
+    DBSql::BatchInsertFromString(sql, features, 2, 2, 0);
 }

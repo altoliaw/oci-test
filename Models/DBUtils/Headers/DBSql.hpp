@@ -6,6 +6,6 @@
 #include "DBConnector.hpp"
 namespace DBSql {
 
-void BatchInsertFromString(char* sql, char** featrues[], int count, int n_feature);
+void BatchInsertFromString(char* sql, char*** featrues, int count, int n_feature, int len);
 
 }
