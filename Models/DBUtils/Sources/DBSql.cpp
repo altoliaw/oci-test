@@ -1,5 +1,4 @@
 #include "../Headers/DBSql.hpp"
-#include <iostream>
 /**
  * @brief Execute batch of insertion.
  * 
@@ -18,6 +17,18 @@ void DBSql::BatchInsertFromString(char* sql, char*** features, int count, int n_
         snprintf(fmtstr, sizeof(fmtstr), ":%d", i);
         conn->BindArrayOfStrings(fmtstr, (char*)((char (*)[count][len + 1])features)[i - 1], len, count);
     }
-    conn->Execute();
+    conn->Execute("PreparedStatement Batch executed, INSERT done\n", "Batch execution failed. Rolling back.\n");
+    conn->Disconnect();
+}
+
+/**
+ * @brief Test function that excute SELECT cmd.
+ * 
+ * @param sql [char*] SQL statement be excuted.
+ */
+void DBSql::FetchDataTest(char* sql) {
+    DBConnector* conn = &DBConnector::GetInstance();
+    conn->Initialize();
+    conn->Fetch(sql, "Fetching data success.", "Fetching data failed.");
     conn->Disconnect();
 }

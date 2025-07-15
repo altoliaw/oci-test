@@ -2,7 +2,8 @@
 
 int main(int argc, char** argv) {
     OciController controller;
-    controller.start();
+    // controller.start();
     // controller.Insert2Columns();
+    controller.FetchDataTest();
     return 0;
 }

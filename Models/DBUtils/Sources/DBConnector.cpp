@@ -81,13 +81,13 @@ boolean DBConnector::BindArrayOfStrings(const char* name, char* value, unsigned 
  * @brief Excute the sql statement you have set before(DBConnector::SetSQLStatement).
  * 
  */
-void DBConnector::Execute() {
+void DBConnector::Execute(std::string success, std::string failed) {
     if ( OCI_Execute(st) ) {
-        printf("PreparedStatement Batch executed, INSERT done\n");
+        std::cout << success << std::endl;
         OCI_Commit(cn);
     }
     else {
-        printf("Batch execution failed. Rolling back.\n");
+        std::cout << failed << std::endl;
         OCI_Rollback(cn);
     }
     OCI_StatementFree(st);
@@ -123,4 +123,16 @@ DBConnector::DBConnector() {
  */
 DBConnector::~DBConnector() {
     delete instance;
+}
+
+void DBConnector::Fetch(char* sql, std::string success, std::string failed) {
+    OCI_Resultset* rs;
+    if ( OCI_ExecuteStmt(this->st, sql) ) {
+        std::cout << success << std::endl;
+        rs = OCI_GetResultset(this->st);
+    }
+    else {
+        std::cout << failed << std::endl;
+    }
+    OCI_StatementFree(st);
 }
