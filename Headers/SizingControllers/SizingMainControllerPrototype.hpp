@@ -9,7 +9,7 @@
 #include <vector>
 #include "../../Models/Commons/Headers/POSIXErrors.hpp"
 
-namespace SizingMainCaller {
+namespace SizingControllers {
 struct unitService {
    public:
     char interfaceName[256];
@@ -18,7 +18,7 @@ struct unitService {
     ~unitService();
 };
 
-class SizingMainCallerPrototype {
+class SizingMainControllerPrototype {
    public:
     virtual Commons::POSIXErrors start(int, char**) = 0;
 };

@@ -20,11 +20,11 @@ class TestDataModel {
     /**
      * Obtaining the features from the data model
      *
-     * @return [std::vector<char*>] The vector containing the feature strings
+     * @return [std::vector<const char*>] The vector containing the feature strings
      */
-    std::vector<char*> GetFeatures();
+    std::vector<const char*> GetFeatures();
 
    private:
     // The feature strings which will be used for testing
-    std::vector<char*> features;
+    std::vector<const char*> features;
 };

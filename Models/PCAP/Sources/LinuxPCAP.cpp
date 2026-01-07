@@ -16,6 +16,9 @@ LinuxPCAP::LinuxPCAP() {
     txSize = 0;
     rxPacketNumber = 0;
     txPacketNumber = 0;
+    rxGroupNumber = 0;
+    txGroupNumber = 0;
+    flowChangeNumber = 0;
     maxRxSize = 0;
     maxTxSize = 0;
 }
@@ -38,6 +41,9 @@ LinuxPCAP::~LinuxPCAP() {
     txSize = 0;
     rxPacketNumber = 0;
     txPacketNumber = 0;
+    rxGroupNumber = 0;
+    txGroupNumber = 0;
+    flowChangeNumber = 0;
     maxRxSize = 0;
     maxTxSize = 0;
 
@@ -98,8 +104,9 @@ void LinuxPCAP::execute(void (*callback)(u_char*, const pcap_pkthdr*, const u_ch
                   0,
                   ((callback == nullptr) ? LinuxPCAP::packetHandler : callback),                                          // if callback is nullptr,
                                                                                                                           // the function will be the default function in the class
-                  (callback == nullptr) ? reinterpret_cast<u_char*>(&rxPacketNumber) : reinterpret_cast<u_char*>(this));  // if callback is nullptr,
+                  (callback == nullptr) ? reinterpret_cast<u_char*>(&rxPacketNumber) : reinterpret_cast<u_char*>(this)    // if callback is nullptr,
                                                                                                                           // the function will be the default function in the class
+        );
     }
 }
 
@@ -114,11 +121,12 @@ void LinuxPCAP::close() {
 }
 
 /**
- * Calculating the amount of the packets
+ * Calculating the amount of the packets, a callback function to throw into the PCAP module (default)
+ * When the outer does not throw the user defined callback function, the function below will execute automatically.
  *
  * @param userData [u_char*] The additional information for the function, packetHandler; the additional information will be binding with
  * the forth argument in the pcap_loop
- * @param pkthdr [const struct pcap_pkthdr*] The header of the packet
+ * @param pkthdr [const struct pcap_pkthdr*] The header of the packet (metadata)
  * @param packet [const u_char*] The data from the last position of the header of the packet
  */
 void LinuxPCAP::packetHandler(u_char* userData, const struct pcap_pkthdr* pkthdr, const u_char* packet) {
