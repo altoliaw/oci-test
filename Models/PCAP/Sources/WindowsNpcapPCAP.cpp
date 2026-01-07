@@ -1,14 +1,14 @@
 /**
- * @see WindowsPCAP.hpp
+ * @see WindowsNpcapPCAP.hpp
  */
-#include "../Headers/WindowsPCAP.hpp"
+#include "../Headers/WindowsNpcapPCAP.hpp"
 
-#ifdef _WIN32
+
 namespace PCAP {
 /**
  * Constructor
  */
-WindowsPCAP::WindowsPCAP() {
+WindowsNpcapPCAP::WindowsNpcapPCAP() {
     errBuff[0] = '\0';
     descriptor = nullptr;
     pcapDescriptor = (pcap_t*)descriptor;
@@ -17,14 +17,18 @@ WindowsPCAP::WindowsPCAP() {
     txSize = 0;
     rxPacketNumber = 0;
     txPacketNumber = 0;
+    rxGroupNumber = 0;
+    txGroupNumber = 0;
+    flowChangeNumber = 0;
     maxRxSize = 0;
     maxTxSize = 0;
 }
 
+
 /**
  * Destructor
  */
-WindowsPCAP::~WindowsPCAP() {
+WindowsNpcapPCAP::~WindowsNpcapPCAP() {
     // PCAP handle shall be closed and NULL.
     if (pcapDescriptor != nullptr) {
         std::cerr << "[Error] pcapDescriptor shall has been deallocated.\n";
@@ -42,6 +46,7 @@ WindowsPCAP::~WindowsPCAP() {
     maxRxSize = 0;
     maxTxSize = 0;
 
+
     // To ensure that the map is empty
     if (portRelatedInformation.empty() == false) {
         for (std::unordered_map<int, PCAPPortInformation*>::iterator it = portRelatedInformation.begin();
@@ -56,6 +61,7 @@ WindowsPCAP::~WindowsPCAP() {
     }
 }
 
+
 /**
  * Opening the PCAP object according to an interface with different ports
  *
@@ -66,12 +72,13 @@ WindowsPCAP::~WindowsPCAP() {
  * @param timeout [const int] Timeout (milliseconds)
  * @param port [std::vector<int>*] The port of the server for distinguishing with the packets from rx and tx
  */
-void WindowsPCAP::open(const char* device, const int snaplen, const int promisc, const int timeout, std::vector<int>* port) {
+void WindowsNpcapPCAP::open(const char* device, const int snaplen, const int promisc, const int timeout, std::vector<int>* port) {
     pcapDescriptor = pcap_open_live(device, snaplen, promisc, timeout, errBuff);
     if (pcapDescriptor == nullptr) {
         std::cerr << "[Error] PCAP open failed; please verifying if the permission is root\n";
     }
     descriptor = (void*)pcapDescriptor;  // Passing the descriptor to the general type
+
 
     // Copying the NIC information into the object
     std::string deviceInterface(device);
@@ -84,6 +91,7 @@ void WindowsPCAP::open(const char* device, const int snaplen, const int promisc,
     }
 }
 
+
 /**
  * Looping for obtaining packets; if the developer does not pass the argument, the default static function, LinuxPCAP::packetHandler,
  * defined in class will be injected; otherwise, the user-defined function will be referred
@@ -91,41 +99,45 @@ void WindowsPCAP::open(const char* device, const int snaplen, const int promisc,
  * @param callback [void (*)(u_char*, const pcap_pkthdr*, const u_char*)] The callback function for pcap_loop;
  * the default value of the function is "nullptr" (has been initialized in the declaration)
  */
-void WindowsPCAP::execute(void (*callback)(u_char*, const pcap_pkthdr*, const u_char*)) {
+void WindowsNpcapPCAP::execute(void (*callback)(u_char*, const pcap_pkthdr*, const u_char*)) {
     if (pcapDescriptor != nullptr) {
         // The forth argument in the pcap_loop will be associated to the first one parameter in the function, callback.
         // If the callback is not nullptr, the forth argument is the object.
         pcap_loop(pcapDescriptor,
                   0,
-                  ((callback == nullptr) ? WindowsPCAP::packetHandler : callback),                                        // if callback is nullptr,
+                  ((callback == nullptr) ? WindowsNpcapPCAP::packetHandler : callback),                                        // if callback is nullptr,
                                                                                                                           // the function will be the default function in the class
                   (callback == nullptr) ? reinterpret_cast<u_char*>(&rxPacketNumber) : reinterpret_cast<u_char*>(this));  // if callback is nullptr,
                                                                                                                           // the function will be the default function in the class
     }
 }
 
+
 /**
  * Closing the PCAP
  */
-void WindowsPCAP::close() {
+void WindowsNpcapPCAP::close() {
     if (pcapDescriptor != nullptr) {
         pcap_close(pcapDescriptor);
         pcapDescriptor = nullptr;
     }
 }
 
+
 /**
- * Calculating the amount of the packets
+ * Calculating the amount of the packets, a callback function to throw into the PCAP module (default)
+ * When the outer does not throw the user defined callback function, the function below will execute automatically.
  *
  * @param userData [u_char*] The additional information for the function, packetHandler; the additional information will be binding with
  * the forth argument in the pcap_loop
- * @param pkthdr [const struct pcap_pkthdr*] The header of the packet
+ * @param pkthdr [const struct pcap_pkthdr*] The header of the packet (metadata)
  * @param packet [const u_char*] The data from the last position of the header of the packet
  */
-void WindowsPCAP::packetHandler(u_char* userData, const struct pcap_pkthdr* pkthdr, const u_char* packet) {
+void WindowsNpcapPCAP::packetHandler(u_char* userData, const struct pcap_pkthdr* pkthdr, const u_char* packet) {
     int* packetCount = (int*)userData;
     (*packetCount)++;
     std::cout << *packetCount << "  packets\t";
+
 
     long* totalSize = (long*)(userData + sizeof(int));
     *totalSize += pkthdr->len;
@@ -134,15 +146,17 @@ void WindowsPCAP::packetHandler(u_char* userData, const struct pcap_pkthdr* pkth
     Sleep(2000);
 }
 
+
 /**
  * Displaying the devices for .Json settings; this function is for windows platform because
  * the interface name on windows platform is involved with the registered machine codes; as
  * a result, the on windows platform, the editor shall provide device information for users'
  * json definition
  */
-void WindowsPCAP::show() {
+void WindowsNpcapPCAP::show() {
     pcap_if_t* allDevices;  // All devices (linked list)
     pcap_if_t* device;      // Each device pointer
+
 
     char errBuff[PCAP_ERRBUF_SIZE];  // For error message
     // Obtaining all devices into the device list; when there are no devices here, -1 will be obtained
@@ -151,9 +165,10 @@ void WindowsPCAP::show() {
         return;
     }
 
+
     int index = 0;  // The index for device traversal
     std::cout << "The devices on Windows platform are listed with the format \"$1: $2 ($3)\" in the following "
-              << "where the {{$#}}s are denoted as the serial number, device name, and device description in sequence. "
+              << "where the {{#}}s are denoted as the serial number, device name, and device description in sequence. "
               << "Please copy the device name into the .json file in the \"Settings\" directory.\n\n";
     for (device = allDevices; device != nullptr; device = device->next) {
         std::cout << ++index << ": " << device->name << "\t";
@@ -164,6 +179,7 @@ void WindowsPCAP::show() {
         }
     }
 
+
     // Releasing the memory which was allocated for the devices
     if (allDevices != nullptr) {
         pcap_freealldevs(allDevices);
@@ -171,5 +187,15 @@ void WindowsPCAP::show() {
     }
 }
 
+
+/**
+ * Breaking the pcap_loop
+ */
+void WindowsNpcapPCAP::pcap_breakloop() {
+    if (pcapDescriptor != nullptr) {
+        ::pcap_breakloop(pcapDescriptor);
+    }
+}
+
+
 }  // namespace PCAP
-#endif
