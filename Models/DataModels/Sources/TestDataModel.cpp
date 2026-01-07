@@ -19,8 +19,8 @@ TestDataModel::TestDataModel() {
 /**
  * Obtaining the features from the data model
  *
- * @return [std::vector<char*>] The vector containing the feature strings
+ * @return [std::vector<const char*>] The vector containing the feature strings
  */
-std::vector<char*> TestDataModel::GetFeatures() {
+std::vector<const char*> TestDataModel::GetFeatures() {
     return features;
 }

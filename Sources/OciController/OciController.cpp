@@ -11,7 +11,7 @@
  */
 void OciController::start() {
     // The INSERT SQL statement with 50 columns
-    char* sql =
+    const char* sql =
         "INSERT INTO wubai_table_actually_wushi ("
         "extremely_long_column_name_one, extremely_long_column_name_two, extremely_long_column_name_three, "
         "extremely_long_column_name_four, extremely_long_column_name_five, extremely_long_column_name_six, "
@@ -43,7 +43,7 @@ void OciController::start() {
     }
 
     // Executing the batch insertion with 1000 rows, 50 columns, and maximum string length 99
-    DBSql::BatchInsertFromString(sql, (char***)features, 1000, 50, 99);
+    DBSql::BatchInsertFromString((char*)sql, (char***)features, 1000, 50, 99);
 }
 
 /**
@@ -52,18 +52,18 @@ void OciController::start() {
  */
 void OciController::Insert2Columns() {
     // The INSERT SQL statement with 2 columns
-    char* sql =
+    const char* sql =
         "INSERT INTO TEST(COLUMN1, COLUMN2) "
         "VALUES(:1, :2)";
 
     // The test value for the columns
-    char* value = "extremely_long_value_of_column_with_extremely_long_name_number";
+    const char* value = "extremely_long_value_of_column_with_extremely_long_name_number";
 
     // The feature array; the initialization shall be implemented before calling the function
     char*** features;
 
     // Executing the batch insertion with 2 rows, 2 columns
-    DBSql::BatchInsertFromString(sql, features, 2, 2, 0);
+    DBSql::BatchInsertFromString((char*)sql, features, 2, 2, 0);
 }
 
 /**
@@ -72,9 +72,9 @@ void OciController::Insert2Columns() {
  */
 void OciController::FetchDataTest() {
     // The SELECT SQL statement
-    char* sql =
+    const char* sql =
         "SELECT * FROM WUBAI_TABLE_ACTUALLY_WUSHI";
 
     // Executing the SELECT query
-    DBSql::FetchDataTest(sql);
+    DBSql::FetchDataTest((char*)sql);
 }
