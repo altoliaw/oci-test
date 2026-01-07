@@ -268,6 +268,8 @@ git 2.x
 ```bash
 jq-1.6          # JSON processing (for dependency management)
 GNU Awk 4.2.1   # Text processing (for build scripts)
+unzip
+rsync
 ```
 
 ### Platform-Specific Requirements
