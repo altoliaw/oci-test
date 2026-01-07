@@ -1,92 +1,128 @@
+/**
+ * @see DBConnector.hpp
+ */
 #include "../Headers/DBConnector.hpp"
+
 #include <iostream>
 #include <ocilib.h>
 #include <stdio.h>
+
 using namespace std;
 
+// Initialization as nullptr to the static variable defined in the class
 DBConnector* DBConnector::instance = nullptr;
 
 /**
- * @brief Get instance of DBConnector.
- * 
- * @return DBConnector& 
+ * Obtaining the singleton instance of the DBConnector; if the static pointer is nullptr,
+ * the instance will be created automatically
+ *
+ * @return [DBConnector&] The reference to the DBConnector instance
  */
 DBConnector& DBConnector::GetInstance() {
-    if ( instance == nullptr ) {
-        // if only one instance is nullptr new a instance.
+    // If the static pointer is nullptr, the pointer shall be referred to a new instance
+    if (instance == nullptr) {
         instance = new DBConnector();
     }
     return *instance;
 }
 
 /**
- * @brief Initialize the DB connection and create the statement instance of connection.
- * 
- * @return [int] The success of initialization
+ * Initializing the database connection and creating the statement instance of the connection;
+ * the function shall be called before executing any SQL operations
+ *
+ * @return [Commons::POSIXErrors] The status defined in the class "POSIXErrors"
  */
-int DBConnector::Initialize() {
-    // Initialize OCILIB
+Commons::POSIXErrors DBConnector::Initialize() {
+    // Initializing OCILIB
     if (!OCI_Initialize(DBConnector::Err_Handler, NULL, OCI_ENV_DEFAULT)) {
         printf("Failed to initialize OCILIB\n");
-        return EXIT_FAILURE;
+        return Commons::POSIXErrors::E_INVAL;
     }
-    // Connect to the database
+
+    // Connecting to the database; the connection information shall be obtained from
+    // the configuration file in the future implementation
     cn = OCI_ConnectionCreate("192.168.30.178/orcl", "alan", "alan", OCI_SESSION_DEFAULT);
     if (!cn) {
         printf("Connection failed!\n");
         OCI_Cleanup();
-        return EXIT_FAILURE;
+        return Commons::POSIXErrors::E_IO;
     }
     printf("Connection established successfully!\n");
+
+    // Creating the statement instance
     st = OCI_StatementCreate(cn);
+    if (!st) {
+        return Commons::POSIXErrors::E_NOMEM;
+    }
+
+    return Commons::POSIXErrors::OK;
 }
 
 /**
- * @brief Error handler of OCI shows the message of error.
- * 
- * @param err 
+ * The error handler for OCI operations; the function will be called automatically when
+ * an error occurs during OCI operations
+ *
+ * @param err [OCI_Error*] The error object from OCILIB
  */
 void DBConnector::Err_Handler(OCI_Error* err) {
     printf("%s\n", OCI_ErrorGetString(err));
 }
 
 /**
- * @brief Set the sql statement that will be excuted.
- * 
- * @param sql [char*] The sql statement.
- * @return [int]
+ * Setting the SQL statement which will be executed; the function shall be called before
+ * binding parameters or executing the statement
+ *
+ * @param sql [char*] The SQL statement
+ * @return [Commons::POSIXErrors] The status defined in the class "POSIXErrors"
  */
-int DBConnector::SetSQLStatement(char* sql) {
-    // if success return 0;
+Commons::POSIXErrors DBConnector::SetSQLStatement(char* sql) {
+    // Preparing the SQL statement; if the preparation fails, the error will be returned
     boolean success = OCI_Prepare(st, sql);
-    if ( !success ) {
+    if (!success) {
         cout << "Failed to prepare statement." << endl;
         OCI_Cleanup();
-        return EXIT_FAILURE;
+        return Commons::POSIXErrors::E_INVAL;
     }
-    return 0;
+    return Commons::POSIXErrors::OK;
 }
 
-
+/**
+ * Setting the array size for batch operations; the function shall be called before
+ * binding array parameters
+ *
+ * @param size [unsigned int] The number of elements in the array
+ * @return [boolean] The success value; if the value is TRUE, the operation succeeds
+ */
 boolean DBConnector::BindArraySetSize(unsigned int size) {
     return OCI_BindArraySetSize(st, size);
 }
 
-
+/**
+ * Binding an array of strings to the SQL statement; the function shall be called after
+ * setting the array size
+ *
+ * @param name [const char*] The placeholder name (e.g., ":1", ":2")
+ * @param value [char*] The starting address of the string array
+ * @param len [unsigned int] The maximum length of each string
+ * @param nb_elem [unsigned int] The number of elements in the array
+ * @return [boolean] The success value; if the value is TRUE, the operation succeeds
+ */
 boolean DBConnector::BindArrayOfStrings(const char* name, char* value, unsigned int len, unsigned int nb_elem) {
     return OCI_BindArrayOfStrings(st, name, value, len, nb_elem);
 }
 
 /**
- * @brief Excute the sql statement you have set before(DBConnector::SetSQLStatement).
- * 
+ * Executing the SQL statement which has been set before; the function will commit the
+ * transaction if the execution succeeds; otherwise, the transaction will be rolled back
+ *
+ * @param success [std::string] The message which will be displayed when the execution succeeds
+ * @param failed [std::string] The message which will be displayed when the execution fails
  */
 void DBConnector::Execute(std::string success, std::string failed) {
-    if ( OCI_Execute(st) ) {
+    if (OCI_Execute(st)) {
         std::cout << success << std::endl;
         OCI_Commit(cn);
-    }
-    else {
+    } else {
         std::cout << failed << std::endl;
         OCI_Rollback(cn);
     }
@@ -94,8 +130,8 @@ void DBConnector::Execute(std::string success, std::string failed) {
 }
 
 /**
- * @brief Free the connection of DB.
- * 
+ * Releasing the database connection and cleaning up the OCILIB resources; the function
+ * shall be called when the database operations are completed
  */
 void DBConnector::Disconnect() {
     OCI_ConnectionFree(cn);
@@ -103,35 +139,50 @@ void DBConnector::Disconnect() {
 }
 
 /**
- * @brief Get the pointer of OCI_Statement of DBConnector.
- * 
- * @return [OCI_Statement*]
+ * Obtaining the pointer to the OCI statement instance
+ *
+ * @return [OCI_Statement*] The pointer to the statement instance
  */
 OCI_Statement* DBConnector::GetStatement() {
     return st;
 }
 
 /**
- * Constructor 
+ * Constructor
  */
 DBConnector::DBConnector() {
+    cn = nullptr;
+    st = nullptr;
 }
 
 /**
- * @brief Destructor, free the pointer of instance.
- * 
+ * Destructor; the static instance will be released when the program terminates
  */
 DBConnector::~DBConnector() {
-    delete instance;
+    // Note: The instance deletion shall be handled by the caller or a separate cleanup method,
+    // not in the destructor to avoid self-deletion issues
+    cn = nullptr;
+    st = nullptr;
 }
 
+/**
+ * Executing a SELECT query and obtaining the result set; the function will display
+ * the success or failure message
+ *
+ * @param sql [char*] The SQL SELECT statement
+ * @param success [std::string] The message which will be displayed when the fetch succeeds
+ * @param failed [std::string] The message which will be displayed when the fetch fails
+ */
 void DBConnector::Fetch(char* sql, std::string success, std::string failed) {
     OCI_Resultset* rs;
-    if ( OCI_ExecuteStmt(this->st, sql) ) {
+
+    // Executing the SQL statement
+    if (OCI_ExecuteStmt(this->st, sql)) {
         std::cout << success << std::endl;
         rs = OCI_GetResultset(this->st);
-    }
-    else {
+
+        // The result set can be processed here in the future implementation
+    } else {
         std::cout << failed << std::endl;
     }
     OCI_StatementFree(st);
