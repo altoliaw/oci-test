@@ -133,7 +133,8 @@ Platform-specific code is isolated in separate implementation files (e.g., `Linu
 Contains the main entry points for different executable applications. Each subdirectory represents a separate application:
 
 - **`Apps/Sizing/`**: Main sizing application entry point
-- **`Apps/Oci/`**: Oracle database testing and verification application
+- **`Apps/Oci/`**: Oracle database testing and verification application (using ocilib wrapper)
+- **`Apps/OciRaw/`**: Oracle database testing application using raw OCI API (without ocilib)
 - **`Apps/Executions/`**: (Legacy) Final executable linking directory
 
 **Usage**: When creating a new application, add a subdirectory under `Apps/` with a main entry point file.
@@ -146,7 +147,10 @@ Contains application controllers which implement the business logic and orchestr
 - **`Sources/SizingControllers/`**: Controllers for the sizing application
   - Platform-specific implementations (Linux, Windows)
   - Abstract base classes (Prototype pattern)
-- **`Sources/OciControllers/`**: Oracle database operation controllers
+- **`Sources/OciControllers/`**: Oracle database operation controllers (using ocilib wrapper)
+- **`Sources/OciRawControllers/`**: Oracle database operation controllers using raw OCI API
+  - Direct OCI calls without ocilib dependency
+  - Provides `OciRawController` class for database connectivity and query execution
 
 **Usage**: Controllers shall be organized by feature or subsystem. Use abstract base classes for platform-specific implementations.
 
@@ -192,7 +196,8 @@ Database connectivity and SQL operations:
 Exported header files organized by module. This separation keeps the public API clean:
 
 - **`Headers/SizingControllers/`**: Public interfaces for sizing controllers
-- **`Headers/OciControllers/`**: Public interfaces for OCI controllers
+- **`Headers/OciControllers/`**: Public interfaces for OCI controllers (using ocilib)
+- **`Headers/OciRawControllers/`**: Public interfaces for raw OCI controllers (without ocilib)
 
 **Important**: Headers are separated from their implementation sources. When adding a new module, create corresponding headers in this directory.
 
