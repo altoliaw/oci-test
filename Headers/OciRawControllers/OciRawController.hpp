@@ -1,0 +1,100 @@
+#pragma once
+/** @file OciRawController.hpp
+ * The controller for Oracle database operations using raw OCI API; the class provides
+ * methods for database connection, query execution, and result fetching without using
+ * the ocilib wrapper library
+ *
+ * @author Nick, Liao
+ * @date 2025/06/26
+ *
+ * @note The file is dependent on the Oracle OCI library (libclntsh)
+ */
+
+#ifdef __linux__
+
+#include <oci.h>
+#include <string>
+
+/**
+ * The Oracle database controller using raw OCI API
+ */
+class OciRawController {
+   public:
+    /**
+     * Constructing the OciRawController instance; the OCI environment and handles
+     * shall be initialized
+     */
+    OciRawController();
+
+    /**
+     * Destroying the OciRawController instance; the OCI resources shall be released
+     */
+    ~OciRawController();
+
+    /**
+     * Connecting to the Oracle database with the specified credentials
+     *
+     * @param username [const std::string&] The database username
+     * @param password [const std::string&] The database password
+     * @param connectionString [const std::string&] The database connection string (e.g., "//localhost:1521/ORCLCDB")
+     * @return [bool] The value shall be true if the connection is successful; otherwise false
+     */
+    bool connect(const std::string& username, const std::string& password, const std::string& connectionString);
+
+    /**
+     * Disconnecting from the Oracle database; the connection resources shall be released
+     */
+    void disconnect();
+
+    /**
+     * Testing the basic SELECT query; the function shall execute "SELECT SYSDATE FROM DUAL"
+     * and display the result
+     */
+    void testSelectSysdate();
+
+    /**
+     * Testing the data fetching from a specified table; the function shall execute a SELECT
+     * query and display the results
+     *
+     * @param tableName [const std::string&] The name of the table to query
+     */
+    void testFetchData(const std::string& tableName);
+
+    /**
+     * Executing a custom SQL query; the function shall execute the specified SQL statement
+     * and display the results
+     *
+     * @param sqlStatement [const std::string&] The SQL statement to execute
+     * @return [bool] The value shall be true if the execution is successful; otherwise false
+     */
+    bool executeQuery(const std::string& sqlStatement);
+
+   private:
+    OCIEnv*     ociEnvironment;     ///< The OCI environment handle
+    OCIError*   ociErrorHandle;     ///< The OCI error handle
+    OCISvcCtx*  ociServiceContext;  ///< The OCI service context handle
+    bool        isConnected;        ///< The connection status flag
+
+    /**
+     * Checking the OCI return status and printing the error message if an error occurs
+     *
+     * @param status [sword] The return status from the OCI function
+     * @param errorMessage [const char*] The context message for identifying the error location
+     * @return [bool] The value shall be true if the status is OCI_SUCCESS; otherwise false
+     */
+    bool checkError(sword status, const char* errorMessage);
+
+    /**
+     * Initializing the OCI environment and error handle
+     *
+     * @return [bool] The value shall be true if the initialization is successful; otherwise false
+     */
+    bool initializeOciEnvironment();
+
+    /**
+     * Cleaning up the OCI resources; the handles shall be freed
+     */
+    void cleanupOciResources();
+};
+
+#endif // __linux__

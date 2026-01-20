@@ -146,7 +146,7 @@ Contains application controllers which implement the business logic and orchestr
 - **`Sources/SizingControllers/`**: Controllers for the sizing application
   - Platform-specific implementations (Linux, Windows)
   - Abstract base classes (Prototype pattern)
-- **`Sources/OciController/`**: Oracle database operation controllers
+- **`Sources/OciControllers/`**: Oracle database operation controllers
 
 **Usage**: Controllers shall be organized by feature or subsystem. Use abstract base classes for platform-specific implementations.
 
@@ -192,7 +192,7 @@ Database connectivity and SQL operations:
 Exported header files organized by module. This separation keeps the public API clean:
 
 - **`Headers/SizingControllers/`**: Public interfaces for sizing controllers
-- **`Headers/OciController/`**: Public interfaces for OCI controllers
+- **`Headers/OciControllers/`**: Public interfaces for OCI controllers
 
 **Important**: Headers are separated from their implementation sources. When adding a new module, create corresponding headers in this directory.
 
