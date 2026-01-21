@@ -21,6 +21,7 @@ for i in "${!ParameterArray[@]}"; do  # ${#ParameterArray[@]} implies the number
 done
 
 # Considering the dependency of the native sizing by the traversal of the structure in the file, globalDependencies.json
+mkdir -p ExternalResource # Creating the folder for external resources
 source $(pwd)/Shells/installVendor.sh && \
 dependenciesTraversal $(pwd)/Settings/.Json/globalDependencies.json $(pwd)/$Vendors/.$Vendors.json
 
