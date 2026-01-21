@@ -74,6 +74,30 @@
 			"remove": "rm -rf {{name}}",
 			"windows": false,
 			"linux": true
+		},
+		{
+			"name": "OCI_10.1.0.5",
+			"download": "cp -pr {{projectRootDir}}/ExternalResource/10.1.0.5/* {{name}}",
+			"command": "unzip instantclient-basic-linuxAMD64-10.1.0.5.0-20060519.zip && unzip instantclient-sdk-linuxAMD64-10.1.0.5.0-20060519.zip",
+			"includes": ["instantclient10_1/sdk/include/*"],
+			"libs": ["instantclient10_1/*.jar", "instantclient10_1/*.so", "instantclient10_1/*.so.*"],
+			"others": [],
+			"reference": "https://www.oracle.com/tw/database/technologies/instant-client/linux-x86-64-downloads.html",
+			"remove": "rm -rf {{name}}",
+			"windows": false,
+			"linux": true
+		},
+		{
+			"name": "OCI_12.1.0.2",
+			"download": "cp -pr {{projectRootDir}}/ExternalResource/12.1.0.2/* {{name}}",
+			"command": "unzip instantclient-basic-linux.x64-12.1.0.2.0 && unzip instantclient-sdk-linux.x64-12.1.0.2.0.zip",
+			"includes": ["instantclient_12_1/sdk/include/*"],
+			"libs": ["instantclient_12_1/*.jar", "instantclient_12_1/*.so", "instantclient_12_1/*.so.*"],
+			"others": [],
+			"reference": "https://www.oracle.com/tw/database/technologies/instant-client/linux-x86-64-downloads.html",
+			"remove": "rm -rf {{name}}",
+			"windows": false,
+			"linux": true
 		}
 	]
 }

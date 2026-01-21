@@ -1,6 +1,6 @@
 if (NOT BUILD_TEST)
     add_executable( OciRaw
-        Oci19.cpp
+        OciRaw.cpp
     )
 
     # Adding a post-build command to copy the executable to the Bin directory

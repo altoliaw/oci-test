@@ -167,8 +167,15 @@ function dependenciesTraversal() {
             local vendorDir=$(dirname "$vendorJsonFile") # Displaying the path of the the folder, "Vendors"
             command=$(echo "$command" | sed "s|{{projectVendors}}|$vendorDir|g")
 
+            local projectRootDir="${vendorDir%/*}" # Displaying the path of the root of the project
+            # Verifying if downloading, commanding & removing location shall be replaced to the $projectRootDir
+            download=$(echo "$download" | sed "s|{{projectRootDir}}|$projectRootDir|g")
+            command=$(echo "$command" | sed "s|{{projectRootDir}}|$projectRootDir|g")
+            remove=$(echo "$remove" | sed "s|{{projectRootDir}}|$projectRootDir|g")
+            
             # Executing the download, command, installation and removing the download at last            
             cd "$vendorDir" # Changing to the folder, "Vendors"
+            echo "$vendorDir"
             mkdir -p "$folderName" # Creating the formal folder
             mkdir -p "$folderName/Includes"
             mkdir -p "$folderName/Libs"
@@ -176,7 +183,7 @@ function dependenciesTraversal() {
             eval "$remove" # Removing the tmp folder (ensure that the .tmp folder does not locate in the Vendors)
             mkdir -p "$folderName.tmp" # Making the temporary folder
             eval "$download" # Implementing the download, tar and so on
-            cd "$folderName.tmp" # Changing to the .tmp folder automatically
+            cd "$vendorDir/$folderName.tmp" # Changing to the .tmp folder automatically
             eval "$command"
             cd "$vendorDir/$folderName.tmp" # Changing to the folder, {{name}}.tmp, the temporary folder root
 
