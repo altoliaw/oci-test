@@ -1,6 +1,6 @@
 # For different version of OCI, we can use a variable to 
 # control the include and link directories.
-set(OCI_FOLDER_NAME OCI_12.2.0.1)
+set(OCI_FOLDER_NAME OCI_19.30.0.0)
 
 add_library(OciRaw.Sources
     OciRawController.cpp

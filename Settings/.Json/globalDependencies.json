@@ -110,6 +110,18 @@
 			"remove": "rm -rf {{name}}",
 			"windows": false,
 			"linux": true
+		},
+		{
+			"name": "OCI_19.30.0.0",
+			"download": "cp -pr {{projectRootDir}}/ExternalResource/19.30.0.0/* {{name}}",
+			"command": "unzip instantclient-basic-linux.x64-19.30.0.0.0dbru.zip && unzip -o instantclient-sdk-linux.x64-19.30.0.0.0dbru.zip",
+			"includes": ["instantclient_19_30/sdk/include/*"],
+			"libs": ["instantclient_19_30/*.jar", "instantclient_19_30/*.so", "instantclient_19_30/*.so.*"],
+			"others": ["cd {{projectRootDir}}/Vendors/OCI_19.30.0.0/Libs && ln -sf libclntsh.so.19.1 libclntsh.so && ln -sf libocci.so.19.1 libocci.so && ls -la"],
+			"reference": "https://www.oracle.com/tw/database/technologies/instant-client/linux-x86-64-downloads.html",
+			"remove": "rm -rf {{name}}",
+			"windows": false,
+			"linux": true
 		}
 	]
 }
