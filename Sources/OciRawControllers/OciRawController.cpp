@@ -271,6 +271,140 @@ void OciRawController::testFetchData(const std::string& tableName) {
 }
 
 /**
+ * Testing the CREATE TABLE DDL statement; the function shall create a table with the
+ * specified name and a predefined set of columns
+ *
+ * @param tableName [const std::string&] The name of the table to be created
+ * @return [bool] The value shall be true if the table is created successfully; otherwise false
+ */
+bool OciRawController::testCreateTable(const std::string& tableName) {
+    if (!isConnected) {
+        std::cerr << "[ERROR] Not connected to database" << std::endl;
+        return false;
+    }
+
+    std::cout << "\n=== Testing CREATE TABLE " << tableName << " ===" << std::endl;
+
+    OCIStmt* statementHandle = nullptr;
+    sword status = OCI_SUCCESS;
+
+    // Allocating the statement handle
+    status = OCIHandleAlloc(ociEnvironment, (void**)&statementHandle, OCI_HTYPE_STMT, 0, nullptr);
+    if (!checkError(status, "OCIHandleAlloc for statement handle failed")) {
+        return false;
+    }
+
+    // Constructing the CREATE TABLE SQL statement
+    std::string sqlStatement = "CREATE TABLE " + tableName + " ("
+        "id NUMBER PRIMARY KEY, "
+        "name VARCHAR2(100), "
+        "created_at DATE DEFAULT SYSDATE"
+        ")";
+
+    // Preparing the SQL statement
+    status = OCIStmtPrepare(
+        statementHandle,
+        ociErrorHandle,
+        (const OraText*)sqlStatement.c_str(),
+        (ub4)sqlStatement.length(),
+        OCI_NTV_SYNTAX,
+        OCI_DEFAULT
+    );
+    if (!checkError(status, "OCIStmtPrepare failed")) {
+        OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
+        return false;
+    }
+
+    // Executing the DDL statement; iters shall be 1 for non-SELECT statements
+    status = OCIStmtExecute(
+        ociServiceContext,
+        statementHandle,
+        ociErrorHandle,
+        1,          // Number of iterations (1 for DDL)
+        0,          // Row offset
+        nullptr,    // Snapshot in
+        nullptr,    // Snapshot out
+        OCI_DEFAULT
+    );
+    if (!checkError(status, "OCIStmtExecute failed")) {
+        OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
+        return false;
+    }
+
+    std::cout << "[INFO] Table " << tableName << " is created successfully" << std::endl;
+
+    // Freeing the statement handle
+    OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
+    std::cout << "==========================================\n" << std::endl;
+    return true;
+}
+
+/**
+ * Testing the DROP TABLE DDL statement; the function shall drop the table with the
+ * specified name if it exists
+ *
+ * @param tableName [const std::string&] The name of the table to be dropped
+ * @return [bool] The value shall be true if the table is dropped successfully; otherwise false
+ */
+bool OciRawController::testDropTable(const std::string& tableName) {
+    if (!isConnected) {
+        std::cerr << "[ERROR] Not connected to database" << std::endl;
+        return false;
+    }
+
+    std::cout << "\n=== Testing DROP TABLE " << tableName << " ===" << std::endl;
+
+    OCIStmt* statementHandle = nullptr;
+    sword status = OCI_SUCCESS;
+
+    // Allocating the statement handle
+    status = OCIHandleAlloc(ociEnvironment, (void**)&statementHandle, OCI_HTYPE_STMT, 0, nullptr);
+    if (!checkError(status, "OCIHandleAlloc for statement handle failed")) {
+        return false;
+    }
+
+    // Constructing the DROP TABLE SQL statement
+    std::string sqlStatement = "DROP TABLE " + tableName + " PURGE";
+
+    // Preparing the SQL statement
+    status = OCIStmtPrepare(
+        statementHandle,
+        ociErrorHandle,
+        (const OraText*)sqlStatement.c_str(),
+        (ub4)sqlStatement.length(),
+        OCI_NTV_SYNTAX,
+        OCI_DEFAULT
+    );
+    if (!checkError(status, "OCIStmtPrepare failed")) {
+        OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
+        return false;
+    }
+
+    // Executing the DDL statement; iters shall be 1 for non-SELECT statements
+    status = OCIStmtExecute(
+        ociServiceContext,
+        statementHandle,
+        ociErrorHandle,
+        1,          // Number of iterations (1 for DDL)
+        0,          // Row offset
+        nullptr,    // Snapshot in
+        nullptr,    // Snapshot out
+        OCI_DEFAULT
+    );
+    if (!checkError(status, "OCIStmtExecute failed")) {
+        OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
+        return false;
+    }
+
+    std::cout << "[INFO] Table " << tableName << " is dropped successfully" << std::endl;
+
+    // Freeing the statement handle
+    OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
+    std::cout << "==========================================\n" << std::endl;
+    return true;
+}
+
+/**
  * Executing a custom SQL query; the function shall execute the specified SQL statement
  * and display the results
  *

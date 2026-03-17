@@ -61,6 +61,24 @@ class OciRawController {
     void testFetchData(const std::string& tableName);
 
     /**
+     * Testing the CREATE TABLE DDL statement; the function shall create a table with the
+     * specified name and a predefined set of columns
+     *
+     * @param tableName [const std::string&] The name of the table to be created
+     * @return [bool] The value shall be true if the table is created successfully; otherwise false
+     */
+    bool testCreateTable(const std::string& tableName);
+
+    /**
+     * Testing the DROP TABLE DDL statement; the function shall drop the table with the
+     * specified name if it exists
+     *
+     * @param tableName [const std::string&] The name of the table to be dropped
+     * @return [bool] The value shall be true if the table is dropped successfully; otherwise false
+     */
+    bool testDropTable(const std::string& tableName);
+
+    /**
      * Executing a custom SQL query; the function shall execute the specified SQL statement
      * and display the results
      *

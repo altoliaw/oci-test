@@ -160,6 +160,7 @@ function dependenciesTraversal() {
             # $name is for the formal components where is used for the project)
             download=$(echo "$download" | sed "s/{{name}}/$folderName.tmp/g")
             command=$(echo "$command" | sed "s/{{name}}/$folderName.tmp/g")
+            others=$(echo "$others" | sed "s/{{name}}/$folderName.tmp/g")
             remove=$(echo "$remove" | sed "s/{{name}}/$folderName.tmp/g")
 
             # Verifying if commanded string contains {{projectVendor}}, the {{projectVendor}} shall be replaced
@@ -171,6 +172,7 @@ function dependenciesTraversal() {
             # Verifying if downloading, commanding & removing location shall be replaced to the $projectRootDir
             download=$(echo "$download" | sed "s|{{projectRootDir}}|$projectRootDir|g")
             command=$(echo "$command" | sed "s|{{projectRootDir}}|$projectRootDir|g")
+            others=$(echo "$others" | sed "s|{{projectRootDir}}|$projectRootDir|g")
             remove=$(echo "$remove" | sed "s|{{projectRootDir}}|$projectRootDir|g")
             
             # Executing the download, command, installation and removing the download at last            
@@ -216,7 +218,9 @@ function dependenciesTraversal() {
                 # Copying all elements into the "Includes" folder
                 # Removing the quotes
                 activity=$(echo "$activity" | sed 's/"//g')
-                $(echo "cp -pr $activity $vendorDir/$folderName/")
+                cd "$vendorDir"
+                eval "$activity"
+                # $(echo "cp -pr $activity $vendorDir/$folderName/")
             done
 
             # Removing the .tmp folder
