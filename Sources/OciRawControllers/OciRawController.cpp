@@ -152,6 +152,232 @@ void OciRawController::disconnect() {
 }
 
 /**
+ * The placeholder function for testing the query execution; 
+ * users can implement their own test cases in this function
+ */
+void OciRawController::testPlaceHolder(const std::string& tableName) {
+
+    // Creating the table for testing
+    if (!testCreateTable(tableName)) {
+        return;
+    }
+
+    std::cout << "\n=== Inserting test data into " << tableName << " ===" << std::endl;
+
+    // Sample data to be inserted
+    const struct {
+        int         id;
+        const char* name;
+        const char* nickname;
+        const char* address;
+    } sampleRows[] = {
+        { 1, "Alice", "Alice", "Taipei" },
+        { 2, "Bob", "Bob", "Man"   },
+        { 3, "Carol", "Carol", "Woman" },
+    };
+    const int rowCount = sizeof(sampleRows) / sizeof(sampleRows[0]);
+
+    for (int i = 0; i < rowCount; ++i) {
+        OCIStmt* statementHandle = nullptr;
+        sword status = OCI_SUCCESS;
+
+        // Allocating the statement handle
+        status = OCIHandleAlloc(ociEnvironment, (void**)&statementHandle, OCI_HTYPE_STMT, 0, nullptr);
+        if (!checkError(status, "OCIHandleAlloc for statement handle failed")) {
+            testDropTable(tableName);
+            return;
+        }
+
+        // Constructing the INSERT SQL statement
+        std::string sqlStatement = "INSERT INTO " + tableName +
+            " (id, name, nickname, address) VALUES (" +
+            std::to_string(sampleRows[i].id) + ", '" +
+            sampleRows[i].name + "' , '" +
+            sampleRows[i].nickname + "' , '" +
+            sampleRows[i].address + "')";
+
+        // Preparing the SQL statement
+        status = OCIStmtPrepare(
+            statementHandle,
+            ociErrorHandle,
+            (const OraText*)sqlStatement.c_str(),
+            (ub4)sqlStatement.length(),
+            OCI_NTV_SYNTAX,
+            OCI_DEFAULT
+        );
+        if (!checkError(status, "OCIStmtPrepare failed")) {
+            OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
+            testDropTable(tableName);
+            return;
+        }
+
+        // Executing the DML statement; iters shall be 1 for non-SELECT statements
+        status = OCIStmtExecute(
+            ociServiceContext,
+            statementHandle,
+            ociErrorHandle,
+            1,          // Number of iterations (1 for DML)
+            0,          // Row offset
+            nullptr,    // Snapshot in
+            nullptr,    // Snapshot out
+            OCI_DEFAULT
+        );
+        if (!checkError(status, "OCIStmtExecute failed")) {
+            OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
+            testDropTable(tableName);
+            return;
+        }
+
+        std::cout << "[INFO] Row inserted: id=" << sampleRows[i].id
+                  << ", name=" << sampleRows[i].name << std::endl;
+
+        // Freeing the statement handle
+        OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
+    }
+
+    // Committing the INSERT transaction; DDL auto-commits, but DML shall be committed explicitly
+    sword commitStatus = OCITransCommit(ociServiceContext, ociErrorHandle, OCI_DEFAULT);
+    if (!checkError(commitStatus, "OCITransCommit failed")) {
+        testDropTable(tableName);
+        return;
+    }
+    std::cout << "[INFO] Insert transaction committed successfully" << std::endl;
+    std::cout << "==========================================\n" << std::endl;
+
+    std::cout << "\n=== Updating test data in " << tableName << " ===" << std::endl;
+
+    // Updated address values keyed by id
+    const struct {
+        const char* name;
+        const char* newAddress;
+    } updateRows[] = {
+        { "Alice", "New Taipei" }
+    };
+    const int updateCount = sizeof(updateRows) / sizeof(updateRows[0]);
+
+    // Preparing the UPDATE statement once with bind variable placeholders :address and :id;
+    // the statement handle shall be reused across all iterations
+    OCIStmt* updateHandle = nullptr;
+    sword status = OCIHandleAlloc(ociEnvironment, (void**)&updateHandle, OCI_HTYPE_STMT, 0, nullptr);
+    if (!checkError(status, "OCIHandleAlloc for update statement handle failed")) {
+        testDropTable(tableName);
+        return;
+    }
+
+    std::string updateSql = "UPDATE " + tableName + " SET address = :address WHERE name = :name and nickname = :name";
+    status = OCIStmtPrepare(
+        updateHandle,
+        ociErrorHandle,
+        (const OraText*)updateSql.c_str(),
+        (ub4)updateSql.length(),
+        OCI_NTV_SYNTAX,
+        OCI_DEFAULT
+    );
+    if (!checkError(status, "OCIStmtPrepare for UPDATE failed")) {
+        OCIHandleFree(updateHandle, OCI_HTYPE_STMT);
+        testDropTable(tableName);
+        return;
+    }
+
+    for (int i = 0; i < updateCount; ++i) {
+        OCIBind* bindAddress = nullptr;
+        OCIBind* bindName    = nullptr;
+
+        const char* bindAddr     = updateRows[i].newAddress;
+        const char* bindNameVal  = updateRows[i].name;
+
+        // Binding :address placeholder; the value shall be the new address string
+        status = OCIBindByName(
+            updateHandle,
+            &bindAddress,
+            ociErrorHandle,
+            (const OraText*)":address", -1,
+            (void*)bindAddr,
+            (sb4)(strlen(bindAddr) + 1),
+            SQLT_STR,
+            nullptr, nullptr, nullptr, 0, nullptr,
+            OCI_DEFAULT
+        );
+        if (!checkError(status, "OCIBindByName for :address failed")) {
+            OCIHandleFree(updateHandle, OCI_HTYPE_STMT);
+            testDropTable(tableName);
+            return;
+        }
+
+        // Binding :name placeholder; the value shall be used in both name
+        status = OCIBindByName(
+            updateHandle,
+            &bindName,
+            ociErrorHandle,
+            (const OraText*)":name", -1,
+            (void*)bindNameVal,
+            (sb4)(strlen(bindNameVal) + 1),
+            SQLT_STR,
+            nullptr, nullptr, nullptr, 0, nullptr,
+            OCI_DEFAULT
+        );
+        if (!checkError(status, "OCIBindByName for :name failed")) {
+            OCIHandleFree(updateHandle, OCI_HTYPE_STMT);
+            testDropTable(tableName);
+            return;
+        }
+
+        // Binding :name placeholder; the value shall be used in both name
+        status = OCIBindByName(
+            updateHandle,
+            &bindName,
+            ociErrorHandle,
+            (const OraText*)":name", -1,
+            (void*)bindNameVal,
+            (sb4)(strlen(bindNameVal) + 1),
+            SQLT_STR,
+            nullptr, nullptr, nullptr, 0, nullptr,
+            OCI_DEFAULT
+        );
+        if (!checkError(status, "OCIBindByName for :name failed")) {
+            OCIHandleFree(updateHandle, OCI_HTYPE_STMT);
+            testDropTable(tableName);
+            return;
+        }
+
+
+        // Executing the DML statement; iters shall be 1 for non-SELECT statements
+        status = OCIStmtExecute(
+            ociServiceContext,
+            updateHandle,
+            ociErrorHandle,
+            1,          // Number of iterations (1 for DML)
+            0,          // Row offset
+            nullptr,    // Snapshot in
+            nullptr,    // Snapshot out
+            OCI_DEFAULT
+        );
+        if (!checkError(status, "OCIStmtExecute for UPDATE failed")) {
+            OCIHandleFree(updateHandle, OCI_HTYPE_STMT);
+            testDropTable(tableName);
+            return;
+        }
+
+        std::cout << "[INFO] Row updated: name=" << updateRows[i].name
+                  << ", address=" << updateRows[i].newAddress << std::endl;
+    }
+
+    // Freeing the reused UPDATE statement handle
+    OCIHandleFree(updateHandle, OCI_HTYPE_STMT);
+
+    // Committing the UPDATE transaction
+    commitStatus = OCITransCommit(ociServiceContext, ociErrorHandle, OCI_DEFAULT);
+    if (!checkError(commitStatus, "OCITransCommit failed")) {
+        testDropTable(tableName);
+        return;
+    }
+    std::cout << "[INFO] Update transaction committed successfully" << std::endl;
+    std::cout << "==========================================\n" << std::endl;
+
+    testDropTable(tableName);
+}
+
+/**
  * Testing the basic SELECT query; the function shall execute "SELECT SYSDATE FROM DUAL"
  * and display the result
  */
@@ -297,7 +523,9 @@ bool OciRawController::testCreateTable(const std::string& tableName) {
     // Constructing the CREATE TABLE SQL statement
     std::string sqlStatement = "CREATE TABLE " + tableName + " ("
         "id NUMBER PRIMARY KEY, "
-        "name VARCHAR2(100), "
+        "name VARCHAR2(50), "
+        "nickname VARCHAR2(50), "
+        "address VARCHAR2(100), "
         "created_at DATE DEFAULT SYSDATE"
         ")";
 

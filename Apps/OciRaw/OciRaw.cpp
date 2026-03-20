@@ -49,6 +49,10 @@ int main(int argc, char** argv) {
     // Executing a custom query (uncomment to use)
     // controller.executeQuery("SELECT USER FROM DUAL");
 
+    // Testing the CREATE TABLE DDL statement
+    const std::string testTableName = "OCI_TEST_TABLE";
+    controller.testPlaceHolder(testTableName);
+
     // Disconnecting from the database (optional, destructor will handle it)
     controller.disconnect();
 

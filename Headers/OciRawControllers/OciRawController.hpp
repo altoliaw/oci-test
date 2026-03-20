@@ -53,6 +53,11 @@ class OciRawController {
     void testSelectSysdate();
 
     /**
+     * Testing the placeholder query execution
+     */
+    void testPlaceHolder(const std::string& tableName);
+
+    /**
      * Testing the data fetching from a specified table; the function shall execute a SELECT
      * query and display the results
      *
