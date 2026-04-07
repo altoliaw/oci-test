@@ -3,6 +3,7 @@ Bin
 Outputs
 Vendors
 build
+ExternalResource/**/*.zip
 
 # Files
 *.o

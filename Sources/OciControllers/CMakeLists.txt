@@ -2,7 +2,7 @@ add_library(Oci.Sources
     OciController.cpp
 )
 target_include_directories(Oci.Sources PUBLIC 
-    ../../Headers/OciController
+    ../../Headers/OciControllers
     ../../Models/DataModels/Headers
     ../../Models/DBUtils/Headers
 )

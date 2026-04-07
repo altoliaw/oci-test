@@ -8,3 +8,4 @@
 *.cfg             text eol=lf
 *.version         text eol=lf
 *.version.tmp     text eol=lf
+ExternalResource/** filter=lfs diff=lfs merge=lfs -text
