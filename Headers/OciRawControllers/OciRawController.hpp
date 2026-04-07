@@ -75,6 +75,16 @@ class OciRawController {
     bool testCreateTable(const std::string& tableName);
 
     /**
+     * Testing the DROP PROCEDURE DDL statement; the function shall drop the procedure with the
+     * specified name if it exists
+     *
+     * @param procedureName [const std::string&] The name of the procedure to be created
+     * @param tableName [const std::string&] The name of the table to be queried in the procedure
+     * @return [bool] The value shall be true if the table is created successfully; otherwise false
+     */
+    bool testCreateProcedure(const std::string& procedureName, const std::string& tableName);
+
+    /**
      * Testing the DROP TABLE DDL statement; the function shall drop the table with the
      * specified name if it exists
      *
@@ -82,6 +92,26 @@ class OciRawController {
      * @return [bool] The value shall be true if the table is dropped successfully; otherwise false
      */
     bool testDropTable(const std::string& tableName);
+
+    /**
+     * Testing the DROP PROCEDURE DDL statement; the function shall drop the procedure with the
+     * specified name if it exists
+     *
+     * @param procedureName [const std::string&] The name of the procedure to be dropped
+     * @return [bool] The value shall be true if the procedure is dropped successfully; otherwise false
+     */
+    bool testDropProcedure(const std::string& procedureName);
+
+    /**
+     * Testing the execution of a stored procedure; the function shall invoke the specified
+     * procedure with the provided username and nickname parameters via an anonymous PL/SQL block
+     *
+     * @param procedureName [const std::string&] The name of the procedure to be executed
+     * @param userNickName [const std::string*] The value to be bound to the :v1 parameter;
+     *                     the value shall be nullptr if SQL NULL is to be passed
+     * @return [bool] The value shall be true if the execution is successful; otherwise false
+     */
+    bool testCallProcedure(const std::string& procedureName, const std::string* userNickName);
 
     /**
      * Executing a custom SQL query; the function shall execute the specified SQL statement

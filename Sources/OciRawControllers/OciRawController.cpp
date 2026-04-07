@@ -83,10 +83,14 @@ bool OciRawController::checkError(sword status, const char* errorMessage) {
     }
 
     // Obtaining the error message from the OCI error handle
-    if (status == OCI_ERROR && ociErrorHandle != nullptr) {
+    if ((status == OCI_ERROR || status == OCI_SUCCESS_WITH_INFO) && ociErrorHandle != nullptr) {
         OraText errorBuffer[512];
         sb4 errorCode = 0;
         OCIErrorGet(ociErrorHandle, 1, nullptr, &errorCode, errorBuffer, sizeof(errorBuffer), OCI_HTYPE_ERROR);
+        if (status == OCI_SUCCESS_WITH_INFO) {
+            std::cerr << "[WARN] " << errorMessage << ": " << errorBuffer << " (Error Code: " << errorCode << ")" << std::endl;
+            return false;
+        }
         std::cerr << "[ERROR] " << errorMessage << ": " << errorBuffer << " (Error Code: " << errorCode << ")" << std::endl;
     } else {
         std::cerr << "[ERROR] " << errorMessage << ": OCI Status = " << status << std::endl;
@@ -157,6 +161,10 @@ void OciRawController::disconnect() {
  */
 void OciRawController::testPlaceHolder(const std::string& tableName) {
 
+    // Dropping the table if it already exists from a previous run; the return value
+    // shall be ignored since the table may not exist
+    testDropTable(tableName);
+
     // Creating the table for testing
     if (!testCreateTable(tableName)) {
         return;
@@ -184,7 +192,7 @@ void OciRawController::testPlaceHolder(const std::string& tableName) {
         // Allocating the statement handle
         status = OCIHandleAlloc(ociEnvironment, (void**)&statementHandle, OCI_HTYPE_STMT, 0, nullptr);
         if (!checkError(status, "OCIHandleAlloc for statement handle failed")) {
-            testDropTable(tableName);
+            testDropTable(tableName); // Cleaning up the table if statement handle allocation fails
             return;
         }
 
@@ -374,6 +382,19 @@ void OciRawController::testPlaceHolder(const std::string& tableName) {
     std::cout << "[INFO] Update transaction committed successfully" << std::endl;
     std::cout << "==========================================\n" << std::endl;
 
+    // Creating and dropping the procedure for testing; the procedure name shall be derived from the table name
+    const std::string procedureName = "get" + tableName;
+    if (!testCreateProcedure(procedureName, tableName)) {
+        testDropTable(tableName);
+        return;
+    }
+
+    // Searching the result by calling the procedure
+    const std::string nickName = "Alice";
+    testCallProcedure(procedureName, &nickName);
+
+    testDropProcedure(procedureName);
+
     testDropTable(tableName);
 }
 
@@ -555,11 +576,88 @@ bool OciRawController::testCreateTable(const std::string& tableName) {
         OCI_DEFAULT
     );
     if (!checkError(status, "OCIStmtExecute failed")) {
+        testDropTable(tableName); // Cleaning up the table if statement handle allocation fails
         OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
         return false;
     }
 
     std::cout << "[INFO] Table " << tableName << " is created successfully" << std::endl;
+
+    // Freeing the statement handle
+    OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
+    std::cout << "==========================================\n" << std::endl;
+    return true;
+}
+
+/**
+ * Testing the CREATE PROCEDURE DDL statement; the function shall create a procedure with the
+ * specified name and a predefined set of columns
+ *
+ * @param tableName [const std::string&] The name of the table to be created
+ * @return [bool] The value shall be true if the table is created successfully; otherwise false
+ */
+bool OciRawController::testCreateProcedure(const std::string& procedureName, 
+    const std::string& tableName) {
+    if (!isConnected) {
+        std::cerr << "[ERROR] Not connected to database" << std::endl;
+        return false;
+    }
+
+    std::cout << "\n=== Testing CREATE PROCEDURE " << procedureName << " ===" << std::endl;
+
+    OCIStmt* statementHandle = nullptr;
+    sword status = OCI_SUCCESS;
+
+    // Allocating the statement handle
+    status = OCIHandleAlloc(ociEnvironment, (void**)&statementHandle, OCI_HTYPE_STMT, 0, nullptr);
+    if (!checkError(status, "OCIHandleAlloc for statement handle failed")) {
+        return false;
+    }
+
+    // Constructing the CREATE TABLE SQL statement
+    std::string sqlStatement =
+        "CREATE OR REPLACE PROCEDURE " + procedureName + " (\n"
+        "    p_userName OUT SYS_REFCURSOR,\n"
+        "    p_userNickName IN VARCHAR2\n"
+        ")\n"
+        "IS\n"
+        "BEGIN\n"
+        "    OPEN p_userName FOR\n"
+        "        SELECT * FROM " + tableName + "\n"
+        "        WHERE nickname = p_userNickName;\n"
+        "END " + procedureName + ";";
+
+    // Preparing the SQL statement
+    status = OCIStmtPrepare(
+        statementHandle,
+        ociErrorHandle,
+        (const OraText*)sqlStatement.c_str(),
+        (ub4)sqlStatement.length(),
+        OCI_NTV_SYNTAX,
+        OCI_DEFAULT
+    );
+    if (!checkError(status, "OCIStmtPrepare failed")) {
+        OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
+        return false;
+    }
+
+    // Executing the DDL statement; iters shall be 1 for non-SELECT statements
+    status = OCIStmtExecute(
+        ociServiceContext,
+        statementHandle,
+        ociErrorHandle,
+        1,          // Number of iterations (1 for DDL)
+        0,          // Row offset
+        nullptr,    // Snapshot in
+        nullptr,    // Snapshot out
+        OCI_DEFAULT
+    );
+    if (!checkError(status, "OCIStmtExecute failed")) {
+        OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
+        return false;
+    }
+
+    std::cout << "[INFO] PROCEDURE " << procedureName << " is created successfully" << std::endl;
 
     // Freeing the statement handle
     OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
@@ -619,12 +717,231 @@ bool OciRawController::testDropTable(const std::string& tableName) {
         nullptr,    // Snapshot out
         OCI_DEFAULT
     );
-    if (!checkError(status, "OCIStmtExecute failed")) {
+    if (status == OCI_ERROR) {
+        sb4 errorCode = 0;
+        OraText errorBuffer[512];
+        OCIErrorGet(ociErrorHandle, 1, nullptr, &errorCode, errorBuffer, sizeof(errorBuffer), OCI_HTYPE_ERROR);
+
+        // ORA-00942: table or view does not exist; the error shall be ignored silently
+        if (errorCode == 942) {
+            OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
+            return true;
+        }
+        std::cerr << "[ERROR] OCIStmtExecute failed: " << errorBuffer << " (Error Code: " << errorCode << ")" << std::endl;
+        OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
+        return false;
+    } else if (!checkError(status, "OCIStmtExecute failed")) {
         OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
         return false;
     }
 
     std::cout << "[INFO] Table " << tableName << " is dropped successfully" << std::endl;
+
+    // Freeing the statement handle
+    OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
+    std::cout << "==========================================\n" << std::endl;
+    return true;
+}
+
+/**
+ * Testing the execution of a stored procedure; the function shall invoke the specified
+ * procedure with the provided username and nickname parameters via an anonymous PL/SQL block
+ *
+ * @param procedureName [const std::string&] The name of the procedure to be executed
+ * @param userNickName [const std::string&] The value to be bound to the p_userNickName parameter
+ * @return [bool] The value shall be true if the execution is successful; otherwise false
+ */
+bool OciRawController::testCallProcedure(const std::string& procedureName, const std::string* userNickName) {
+    if (!isConnected) {
+        std::cerr << "[ERROR] Not connected to database" << std::endl;
+        return false;
+    }
+
+    std::cout << "\n=== Testing CALL PROCEDURE " << procedureName << " ===" << std::endl;
+
+    OCIStmt* statementHandle = nullptr;
+    sword status = OCI_SUCCESS;
+
+    // Allocating the statement handle
+    status = OCIHandleAlloc(ociEnvironment, (void**)&statementHandle, OCI_HTYPE_STMT, 0, nullptr);
+    if (!checkError(status, "OCIHandleAlloc for statement handle failed")) {
+        return false;
+    }
+
+    // Constructing the anonymous PL/SQL block to invoke the stored procedure
+    std::string sqlStatement = "BEGIN " + procedureName + "(:v_cursor, :p_userNickName); END;";
+
+    // Preparing the SQL statement
+    status = OCIStmtPrepare(
+        statementHandle,
+        ociErrorHandle,
+        (const OraText*)sqlStatement.c_str(),
+        (ub4)sqlStatement.length(),
+        OCI_NTV_SYNTAX,
+        OCI_DEFAULT
+    );
+    if (!checkError(status, "OCIStmtPrepare failed")) {
+        OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
+        return false;
+    }
+
+    OCIBind* bindCursor       = nullptr;
+    OCIBind* bindUserNickName = nullptr;
+
+    // Allocating the cursor handle for the OUT SYS_REFCURSOR parameter; the address of
+    // the handle shall be passed to OCIBindByName so that Oracle can write the cursor back
+    OCIStmt* cursorHandle = nullptr;
+    status = OCIHandleAlloc(ociEnvironment, (void**)&cursorHandle, OCI_HTYPE_STMT, 0, nullptr);
+    if (!checkError(status, "OCIHandleAlloc for cursor handle failed")) {
+        OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
+        return false;
+    }
+
+    // Binding :v_cursor placeholder; the buffer shall be the address of the cursor handle
+    status = OCIBindByName(
+        statementHandle,
+        &bindCursor,
+        ociErrorHandle,
+        (const OraText*)":v_cursor", -1,
+        (dvoid*)NULL,
+        (sb4)0,
+        SQLT_RSET,
+        (dvoid*)0, (ub2*)0, (ub2*)0, (ub4)0, (ub4*)0,
+        OCI_DEFAULT
+    );
+    if (!checkError(status, "OCIBindByName for :v_cursor failed")) {
+        OCIHandleFree(cursorHandle, OCI_HTYPE_STMT);
+        OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
+        return false;
+    }
+
+    // Preparing the userNickName buffer and indicator; the indicator shall be OCI_IND_NULL (-1)
+    // when userNickName is nullptr, allowing SQL NULL to be passed for the IN VARCHAR2 parameter
+    char nickBuf[256]       = {};
+    sb2  nickIndicator      = OCI_IND_NOTNULL;
+    sb4  nickLen            = 1;
+    if (userNickName != nullptr) {
+        userNickName->copy(nickBuf, sizeof(nickBuf) - 1);
+        nickLen = (sb4)(userNickName->length() + 1);
+    } else {
+        nickIndicator = OCI_IND_NULL;
+    }
+
+    // Binding :p_userNickName placeholder; the indicator shall signal NULL when userNickName is nullptr
+    status = OCIBindByName(
+        statementHandle,
+        &bindUserNickName,
+        ociErrorHandle,
+        (const OraText*)":p_userNickName", -1,
+        (void*)nickBuf,
+        nickLen,
+        SQLT_STR,
+        &nickIndicator, nullptr, nullptr, 0, nullptr,
+        OCI_DEFAULT
+    );
+    if (!checkError(status, "OCIBindByName for :p_userNickName failed")) {
+        OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
+        return false;
+    }
+
+    // Executing the anonymous PL/SQL block; iters shall be 1 for non-SELECT statements
+    status = OCIStmtExecute(
+        ociServiceContext,
+        statementHandle,
+        ociErrorHandle,
+        1,          // Number of iterations (1 for PL/SQL block)
+        0,          // Row offset
+        nullptr,    // Snapshot in
+        nullptr,    // Snapshot out
+        OCI_DEFAULT
+    );
+    if (!checkError(status, "OCIStmtExecute failed")) {
+        OCIHandleFree(cursorHandle, OCI_HTYPE_STMT);
+        OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
+        return false;
+    }
+
+    std::cout << "[INFO] PROCEDURE " << procedureName << " executed successfully"
+              << " (userNickName=" << (userNickName ? *userNickName : "NULL") << ")" << std::endl;
+
+    // Freeing the cursor handle and statement handle
+    OCIHandleFree(cursorHandle, OCI_HTYPE_STMT);
+    OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
+    std::cout << "==========================================\n" << std::endl;
+    return true;
+}
+
+/**
+ * Testing the DROP PROCEDURE DDL statement; the function shall drop the procedure with the
+ * specified name if it exists
+ *
+ * @param procedureName [const std::string&] The name of the procedure to be dropped
+ * @return [bool] The value shall be true if the procedure is dropped successfully; otherwise false
+ */
+bool OciRawController::testDropProcedure(const std::string& procedureName) {
+    if (!isConnected) {
+        std::cerr << "[ERROR] Not connected to database" << std::endl;
+        return false;
+    }
+
+    std::cout << "\n=== Testing DROP PROCEDURE " << procedureName << " ===" << std::endl;
+
+    OCIStmt* statementHandle = nullptr;
+    sword status = OCI_SUCCESS;
+
+    // Allocating the statement handle
+    status = OCIHandleAlloc(ociEnvironment, (void**)&statementHandle, OCI_HTYPE_STMT, 0, nullptr);
+    if (!checkError(status, "OCIHandleAlloc for statement handle failed")) {
+        return false;
+    }
+
+    // Constructing the DROP PROCEDURE SQL statement
+    std::string sqlStatement = "DROP PROCEDURE " + procedureName;
+
+    // Preparing the SQL statement
+    status = OCIStmtPrepare(
+        statementHandle,
+        ociErrorHandle,
+        (const OraText*)sqlStatement.c_str(),
+        (ub4)sqlStatement.length(),
+        OCI_NTV_SYNTAX,
+        OCI_DEFAULT
+    );
+    if (!checkError(status, "OCIStmtPrepare failed")) {
+        OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
+        return false;
+    }
+
+    // Executing the DDL statement; iters shall be 1 for non-SELECT statements
+    status = OCIStmtExecute(
+        ociServiceContext,
+        statementHandle,
+        ociErrorHandle,
+        1,          // Number of iterations (1 for DDL)
+        0,          // Row offset
+        nullptr,    // Snapshot in
+        nullptr,    // Snapshot out
+        OCI_DEFAULT
+    );
+    if (status == OCI_ERROR) {
+        sb4 errorCode = 0;
+        OraText errorBuffer[512];
+        OCIErrorGet(ociErrorHandle, 1, nullptr, &errorCode, errorBuffer, sizeof(errorBuffer), OCI_HTYPE_ERROR);
+
+        // ORA-04043: object does not exist; the error shall be ignored silently
+        if (errorCode == 4043) {
+            OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
+            return true;
+        }
+        std::cerr << "[ERROR] OCIStmtExecute failed: " << errorBuffer << " (Error Code: " << errorCode << ")" << std::endl;
+        OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
+        return false;
+    } else if (!checkError(status, "OCIStmtExecute failed")) {
+        OCIHandleFree(statementHandle, OCI_HTYPE_STMT);
+        return false;
+    }
+
+    std::cout << "[INFO] PROCEDURE " << procedureName << " is dropped successfully" << std::endl;
 
     // Freeing the statement handle
     OCIHandleFree(statementHandle, OCI_HTYPE_STMT);

@@ -30,9 +30,12 @@ int main(int argc, char** argv) {
 
     // Database connection parameters
     // Users shall modify these values according to their environment
+    // const std::string username = "system";
+    // const std::string password = "oracle";
+    // const std::string dbname   = "192.168.150.101:1521/ws";
     const std::string username = "system";
     const std::string password = "oracle";
-    const std::string dbname   = "192.168.150.101:1521/ws";
+    const std::string dbname   = "192.168.127.85:1521/orcl";
 
     // Connecting to the Oracle database
     if (!controller.connect(username, password, dbname)) {
