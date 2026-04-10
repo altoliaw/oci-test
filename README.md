@@ -1,4 +1,4 @@
-# Native Sizing — C++ Traffic Monitoring Application
+# OCI — C++ Oracle Packet Connection Application
 
 **Project**: OCI tools
 **Author**: Nick Liao
@@ -394,7 +394,6 @@ GoogleTest is fetched automatically by CMake during the test build; no manual in
 
 ## Additional Resources
 
-- **CLAUDE.md** — Guidance for AI-assisted development in this repository
 - **CODING_STANDARDS.md** — Detailed coding conventions and IEEE writing style reference
 - **Settings/.Json/globalDependencies.json** — Vendor dependency definitions
 - **Settings/.Cmake/** — CMake module files for platform detection and build routing
