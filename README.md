@@ -311,6 +311,81 @@ When adding new features, the following decision tree shall be followed to deter
 
 ---
 
+## File Placement Guide
+
+The following rules shall be applied when placing new source files into the project.
+Each file type has a designated location determined by its role in the MVC architecture.
+
+### Header Files (`.hpp`)
+
+Header files shall be placed in the `Headers/` directory, **not** alongside their source files.
+The subdirectory under `Headers/` shall mirror the module it belongs to.
+
+| Module | Header Location |
+|--------|----------------|
+| Sizing controllers | `Headers/SizingControllers/` |
+| OCI controllers | `Headers/OciControllers/` |
+| OCI Raw controllers | `Headers/OciRawControllers/` |
+| Models | `Models/<Category>/Headers/` |
+
+> Headers for `Models/` are an exception — they reside inside the model's own subdirectory
+> (e.g., `Models/Commons/Headers/`), not in the top-level `Headers/` directory.
+
+### Source Files (`.cpp`)
+
+| File Type | Location |
+|-----------|----------|
+| Application entry point (has `main()`) | `Apps/<AppName>/` |
+| Controller (business logic / orchestration) | `Sources/<Name>Controllers/` |
+| Model (reusable library / utility) | `Models/<Category>/Sources/` |
+| Service (coordinates controllers + models) | `Services/<Name>Services/` |
+| Unit test | `Tests/Models/<Category>/` |
+
+### Decision Flow
+
+Use the following flow to decide where a new file belongs:
+
+```
+Does the file contain main()?
+  YES → Apps/<AppName>/
+
+Does the file coordinate controllers and models at a high level?
+  YES → Services/<Name>Services/
+
+Does the file contain business logic or orchestration?
+  YES → Sources/<Name>Controllers/    (header → Headers/<Name>Controllers/)
+
+Is the file a reusable utility / data structure / library?
+  YES → Models/<Category>/Sources/    (header → Models/<Category>/Headers/)
+
+Is the file a unit test?
+  YES → Tests/Models/<Category>/
+```
+
+### Concrete Examples
+
+| New component | Source file location | Header file location |
+|---------------|---------------------|---------------------|
+| New sizing controller | `Sources/SizingControllers/NewController.cpp` | `Headers/SizingControllers/NewController.hpp` |
+| New OCI Raw controller | `Sources/OciRawControllers/NewOciRaw.cpp` | `Headers/OciRawControllers/NewOciRaw.hpp` |
+| New common utility | `Models/Commons/Sources/NewUtil.cpp` | `Models/Commons/Headers/NewUtil.hpp` |
+| New DB utility | `Models/DBUtils/Sources/NewDb.cpp` | `Models/DBUtils/Headers/NewDb.hpp` |
+| New application entry | `Apps/NewApp/main.cpp` | — |
+| Unit test for utility | `Tests/Models/Commons/Test_NewUtil.cpp` | — |
+
+### CMakeLists.txt Updates Required
+
+After placing new files, the following CMake files shall be updated:
+
+| Change | File to update |
+|--------|---------------|
+| New model added | `Models/CMakeLists.txt` — add `add_subdirectory` |
+| New controller added | `Sources/CMakeLists.txt` — add source file or subdirectory |
+| New application added | `Apps/CMakeLists.txt` — add executable target |
+| New test added | `Tests/CMakeLists.txt` — add test target |
+
+---
+
 ## Coding Standards
 
 All code contributions shall follow the conventions defined in `CODING_STANDARDS.md`.
@@ -389,6 +464,110 @@ Additional Oracle Instant Client versions (10.1.0.5, 12.1.0.2, 12.2.0.1, 19.30.0
 | autoconf + automake + libtool | any | Configuring libpcap from source |
 
 GoogleTest is fetched automatically by CMake during the test build; no manual installation is required.
+
+---
+
+## Adding a Third-Party Dependency
+
+Third-party dependencies are defined in `Settings/.Json/globalDependencies.json` and
+installed automatically by `processMake.sh` and `unitTest.sh`. Each entry in the
+`dependencies` array shall follow the schema below.
+
+### Entry Schema
+
+```json
+{
+    "name": "<VendorName>",
+    "download": "<shell command to fetch the source>",
+    "command": "<shell command to build or extract>",
+    "includes": ["<glob pattern(s) for header files>"],
+    "libs": ["<glob pattern(s) for library files>"],
+    "others": ["<optional post-install shell commands>"],
+    "reference": "<upstream URL for reference>",
+    "remove": "rm -rf {{name}}",
+    "windows": true,
+    "linux": true
+}
+```
+
+### Field Reference
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `name` | Yes | Vendor directory name; becomes `Vendors/<name>/`. Used as `{{name}}` in commands. |
+| `download` | Yes | Shell command executed from inside `Vendors/<name>/` to fetch the source. |
+| `command` | Yes | Shell command executed from inside `Vendors/<name>/` to build or extract. |
+| `includes` | Yes | Glob patterns for header files; matched files are copied to `Vendors/<name>/Includes/`. |
+| `libs` | Yes | Glob patterns for library files; matched files are copied to `Vendors/<name>/Libs/`. |
+| `others` | No | Additional shell commands run after `includes`/`libs` are copied (e.g., creating symlinks). |
+| `reference` | Yes | Upstream URL for documentation or download page. |
+| `remove` | Yes | Command to delete the vendor directory (typically `rm -rf {{name}}`). |
+| `windows` | Yes | `true` if the dependency shall be installed on Windows builds. |
+| `linux` | Yes | `true` if the dependency shall be installed on Linux builds. |
+
+### Available Placeholders
+
+| Placeholder | Expands to |
+|-------------|-----------|
+| `{{name}}` | The value of the `name` field (e.g., `myLib`) |
+| `{{projectVendors}}` | Absolute path to the `Vendors/` directory |
+| `{{projectRootDir}}` | Absolute path to the project root directory |
+
+### Dependency Types
+
+#### Online Dependency (downloaded at build time)
+
+Used when the library is fetched from a public URL or Git repository:
+
+```json
+{
+    "name": "myLib",
+    "download": "wget -O {{name}}/mylib.tar.gz https://example.com/mylib.tar.gz",
+    "command": "tar zxvf mylib.tar.gz && cd mylib && ./configure --prefix={{projectVendors}}/{{name}} && make && make install && cd ..",
+    "includes": ["include/*"],
+    "libs": ["lib/*"],
+    "others": [],
+    "reference": "https://example.com/mylib",
+    "remove": "rm -rf {{name}}",
+    "windows": false,
+    "linux": true
+}
+```
+
+#### Offline Dependency (from `ExternalResource/`)
+
+Used when the library archive is provided manually and placed in `ExternalResource/<version>/`:
+
+```json
+{
+    "name": "myLib_1.0.0",
+    "download": "cp -pr {{projectRootDir}}/ExternalResource/1.0.0/* {{name}}",
+    "command": "unzip mylib-1.0.0.zip",
+    "includes": ["mylib_1_0/sdk/include/*"],
+    "libs": ["mylib_1_0/*.so", "mylib_1_0/*.so.*"],
+    "others": ["cd {{projectRootDir}}/Vendors/myLib_1.0.0/Libs && ln -sf libmylib.so.1.0 libmylib.so"],
+    "reference": "https://example.com/mylib/downloads",
+    "remove": "rm -rf {{name}}",
+    "windows": false,
+    "linux": true
+}
+```
+
+> Offline archives shall be placed in `ExternalResource/<version>/` before running the build scripts.
+
+### Installation Result
+
+After the build script processes an entry, the following structure is created:
+
+```
+Vendors/
+  <name>/
+    Includes/   ← header files matched by "includes"
+    Libs/       ← library files matched by "libs"
+```
+
+CMake modules in `Settings/.Cmake/` resolve `Vendors/<name>/Includes/` and
+`Vendors/<name>/Libs/` as include and link paths for the build targets.
 
 ---
 
