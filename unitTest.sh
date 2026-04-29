@@ -14,7 +14,7 @@ if [[ "$1" = "--remove" ]]; then
 	printf "${ORANGE}The folder, \"build\", directory has been removed.${NC}\n"
 fi
 mkdir -p build
-cmake -S . -B build
+cmake -S . -B build -G Ninja
 cmake --build build
 cd build && ctest --verbose --rerun-failed --output-on-failure
 cd ..

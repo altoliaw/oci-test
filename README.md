@@ -52,6 +52,9 @@ sudo yum install unzip
 # (typically pre-installed; verify with: rpm2cpio --version)
 sudo yum install rpm2cpio cpio
 
+# ninja-build — build executor used by CMake
+sudo yum install ninja-build
+
 # flex and bison — required to build libpcap from source
 sudo yum install flex bison
 
@@ -64,6 +67,7 @@ sudo yum install autoconf automake libtool
 ```bash
 g++ --version      # shall be GCC 8.5.0 or higher
 cmake --version    # shall be 3.14 or higher
+ninja --version    # shall be 1.8 or higher
 jq --version       # shall be 1.6 or higher
 wget --version
 rpm2cpio --version
@@ -75,6 +79,7 @@ bison --version
 
 - MinGW-w64 toolchain with GCC 8+ and G++
 - CMake 3.14+
+- Ninja (available via MSYS2: `pacman -S mingw-w64-x86_64-ninja`)
 - Git for Windows
 - `jq` for Windows (available via `winget install jqlang.jq` or MSYS2)
 - `wget` or `curl` for downloading vendor archives
@@ -455,6 +460,7 @@ Additional Oracle Instant Client versions (10.1.0.5, 12.1.0.2, 12.2.0.1, 19.30.0
 |------|----------------|-------------|
 | GCC / G++ | 8.5.0 | C++17 compilation |
 | CMake | 3.14 | Build orchestration |
+| Ninja | 1.8 | Build executor (invoked by CMake) |
 | Git | 2.x | Source control; GoogleTest fetch |
 | jq | 1.6 | Vendor install scripts |
 | wget | any | Downloading vendor archives |
