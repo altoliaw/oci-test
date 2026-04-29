@@ -38,7 +38,7 @@ OsType="$(uname -s | tr '[:upper:]' '[:lower:]')" # Obtaining the kernel type st
 # otherwise, CMake's internal OS detection is used.
 build_project() {
     local os_flag=$1
-    local cmake_args=("-S" "." "-B" "build" "-DBUILD_TEST=OFF" "-DCMAKE_BUILD_TYPE=Debug")
+    local cmake_args=("-S" "." "-B" "build" "-G" "Ninja" "-DBUILD_TEST=OFF" "-DCMAKE_BUILD_TYPE=Debug")
 
     if [[ -n "$os_flag" ]]; then
         echo "--- Building with explicit OS flag: $os_flag ---"
